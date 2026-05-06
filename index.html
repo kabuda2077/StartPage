@@ -4,7 +4,7 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Start Page</title>
-  
+
   <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.7.2/css/all.min.css">
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/qweather-icons@1.7.0/font/qweather-icons.css">
@@ -63,9 +63,10 @@
       transition: background-color 0.3s ease, color 0.3s ease;
     }
 
+    /* === 主界面阶梯滑入动画 === */
     html.is-first-visit .reveal-target {
       opacity: 0;
-      transform: translateY(30px);
+      transform: translateY(30px); 
     }
     html.do-reveal .reveal-target {
       animation: slideUpFadeIn 0.8s cubic-bezier(0.4, 0, 0.2, 1) both;
@@ -73,14 +74,8 @@
     }
     
     @keyframes slideUpFadeIn {
-      0% {
-        opacity: 0;
-        transform: translateY(30px);
-      }
-      100% {
-        opacity: 1;
-        transform: translateY(0);
-      }
+      0% { opacity: 0; transform: translateY(30px); }
+      100% { opacity: 1; transform: translateY(0); }
     }
 
     html.theme-transition-expand body,
@@ -268,6 +263,12 @@
       cursor: pointer; font-size: 0.95rem; font-weight: 500;
       display: inline-flex; align-items: center; justify-content: center; gap: 8px;
     }
+    
+    .btn-primary, .btn-secondary, .btn-accent {
+      height: 42px;
+      box-sizing: border-box;
+    }
+
     .btn-primary { background-color: #f8961e; color: #fff; }
     .btn-secondary { background-color: var(--hover-bg); color: var(--text-gray); }
     .btn-accent { background-color: #eef2ff; color: #4f46e5; border: 1px solid #e0e7ff; }
@@ -276,22 +277,47 @@
     .btn-icon:hover { background: var(--hover-bg); color: var(--text-color); }
     .btn-danger { color: #e63946; }
     .btn-danger:hover { background: rgba(230, 57, 70, 0.1); color: #d32f2f; }
+    
+    .btn-success { color: #10b981; }
+    .btn-success:hover { background: rgba(16, 185, 129, 0.1); }
 
+    /* === 统一设置条目对齐基准 === */
     .setting-item {
-      display: flex; align-items: center; gap: 8px;
+      display: flex; align-items: center; gap: 12px;
       background: var(--setting-item-bg); border: 1px solid var(--setting-item-border);
-      padding: 6px 12px; border-radius: 8px; transition: all 0.2s ease;
+      padding: 0 15px;
+      border-radius: 8px; 
+      /* 修复抖动：排除 transform */
+      transition: background-color 0.2s ease, border-color 0.2s ease, box-shadow 0.2s ease;
+      min-height: 42px;
+      box-sizing: border-box;
     }
     .setting-item:hover { box-shadow: 0 4px 12px rgba(0,0,0,0.03); background: var(--card-bg); }
-    .setting-item .handle { cursor: grab; color: #ccc; padding-right: 2px; flex-shrink: 0; }
-    .setting-item .setting-icon { color: #ccc; font-size: 0.9rem; width: 18px; text-align: center; padding-right: 2px; flex-shrink: 0; }
+    
+    .setting-item.group-item { min-height: 48px; }
+    .setting-item.edit-height { min-height: 48px; }
+
+    .setting-item .handle, .setting-item .setting-icon { 
+      width: 20px; text-align: center; flex-shrink: 0; 
+      color: var(--text-light); font-size: 0.95rem;
+    }
+    .setting-item .handle { cursor: grab; }
 
     .setting-input {
       flex: 1; background-color: transparent !important; border: none !important;
-      padding: 10px 8px !important; color: var(--text-color); font-family: inherit;
+      padding: 8px 0 !important; color: var(--text-color); font-family: inherit;
     }
     .setting-input:focus { outline: none; }
     .setting-input::placeholder { color: var(--text-extra-light); }
+
+    .standalone-input {
+      padding: 0 15px !important;
+      height: 42px !important;
+      box-sizing: border-box;
+      background: var(--setting-item-bg) !important;
+      border: 1px solid var(--setting-item-border) !important;
+      border-radius: 8px;
+    }
 
     #settings-groups-container {
       max-height: 400px; overflow-y: auto; padding-right: 5px;
@@ -301,6 +327,27 @@
     #settings-groups-container::-webkit-scrollbar-thumb { background: #d0d0d0; border-radius: 4px; }
 
     .link-edit-item { display: flex; gap: 8px; align-items: center; }
+
+    /* === [重点修复] 彻底解决拖拽透明度问题 === */
+    .sortable-ghost {
+      opacity: 1 !important; /* 强制不透明 */
+      background-color: var(--hover-bg) !important;
+      border: 1px dashed var(--text-light) !important;
+    }
+    .sortable-chosen {
+      opacity: 1 !important; /* 强制不透明 */
+      background-color: var(--card-bg) !important;
+      cursor: grabbing !important;
+    }
+    /* 拖拽时跟随鼠标的“幻影”样式 */
+    .sortable-fallback {
+      opacity: 1 !important;
+      background-color: var(--card-bg) !important;
+      box-shadow: 0 10px 30px rgba(0,0,0,0.15) !important;
+      border-radius: 8px;
+      z-index: 9999;
+      pointer-events: none;
+    }
 
     #floating-controls {
       position: fixed; bottom: 25px; right: 25px;
@@ -318,12 +365,10 @@
 
     #welcome-overlay {
       position: fixed; top: 0; left: 0; width: 100%; height: 100%;
-      background-color: #f5f5f5;
-      z-index: 9999;
+      background-color: #f5f5f5; z-index: 9999;
       display: flex; align-items: center; justify-content: center;
       transition: opacity 0.8s ease;
     }
-    
     #welcome-input-container {
       display: flex; flex-direction: column; align-items: center;
       transition: opacity 0.6s cubic-bezier(0.4, 0, 0.2, 1), transform 0.6s cubic-bezier(0.4, 0, 0.2, 1);
@@ -338,11 +383,9 @@
     }
     #welcome-name-input:focus { outline: none; }
     #welcome-name-input::placeholder { font-size: 0.85rem; color: #bbb; }
-    
     #welcome-greeting-container {
       position: absolute; opacity: 0; pointer-events: none;
-      transform: translateY(30px);
-      transition: opacity 0.8s cubic-bezier(0.4, 0, 0.2, 1), transform 0.8s cubic-bezier(0.4, 0, 0.2, 1);
+      transform: translateY(30px); transition: opacity 0.8s cubic-bezier(0.4, 0, 0.2, 1), transform 0.8s cubic-bezier(0.4, 0, 0.2, 1);
     }
     #welcome-greeting-text {
       font-size: 2.8rem; color: #222; font-weight: bold; margin: 0; letter-spacing: 0;
@@ -350,6 +393,7 @@
   </style>
 </head>
 <body>
+  <!-- 首次欢迎遮罩层 -->
   <div id="welcome-overlay" style="display: none;">
     <div id="welcome-input-container">
       <div id="welcome-prompt">choose a name for you</div>
@@ -385,6 +429,7 @@
 
   <div class="groups reveal-target" style="--delay: 4;"></div>
 
+  <!-- 位置设置弹窗 -->
   <div id="locationModal" class="modal">
     <div class="modal-content">
       <div class="modal-header">
@@ -393,7 +438,7 @@
           <button class="header-btn close-btn" id="loc-close-button">&times;</button>
         </div>
       </div>
-      <input type="text" id="locationInput" style="background:var(--setting-item-bg); border:1px solid var(--input-border); color:var(--text-color); padding:12px; border-radius:8px; margin-bottom:15px;" />
+      <input type="text" id="locationInput" class="standalone-input" style="width:100%; margin-bottom:15px;" />
       <div style="display:flex; flex-direction:column; gap:10px; margin-bottom:8px;">
         <button id="saveLocationBtn" class="btn btn-primary">保存位置</button>
         <button id="useCurrentLocationBtn" class="btn btn-secondary">使用当前位置</button>
@@ -402,14 +447,15 @@
     </div>
   </div>
 
+  <!-- 右下角悬浮控制按钮 -->
   <div id="floating-controls" class="reveal-target" style="--delay: 5;">
-    <div id="theme-toggle-icon" class="floating-btn" title="Toggle Dark Mode">
-    </div>
+    <div id="theme-toggle-icon" class="floating-btn" title="Toggle Dark Mode"></div>
     <div id="settings-icon" class="floating-btn" title="Settings">
       <i class="fas fa-cog"></i>
     </div>
   </div>
 
+  <!-- 设置弹窗 -->
   <div id="settingsModal" class="modal">
     <div class="modal-content" style="max-width: 550px;">
       <div class="modal-header">
@@ -428,37 +474,37 @@
       </div>
       
       <div id="global-settings-section" style="border-top:1px solid var(--card-border); padding-top:15px; display:flex; flex-direction:column; gap:14px;">
-        <button id="editEnginesBtn" class="btn btn-accent" style="width:100%; height:42px;">
+        <button id="editEnginesBtn" class="btn btn-accent" style="width:100%;">
           <i class="fas fa-search"></i> <span id="editEnginesBtnText">自定义搜索引擎</span>
         </button>
 
         <div id="username-section">
-          <div class="setting-item" id="username-saved-mode" style="justify-content:space-between; display:none; height:42px; box-sizing:border-box; padding:0 15px;">
-            <div style="display:flex; align-items:center;">
+          <div class="setting-item" id="username-saved-mode" style="justify-content:space-between; display:none;">
+            <div style="display:flex; align-items:center; gap:12px;">
               <i class="fas fa-user setting-icon"></i>
-              <span id="username-saved-text" style="font-size:0.95rem; color:var(--text-gray); padding-left:8px;"></span>
+              <span id="username-saved-text" style="font-size:0.95rem; color:var(--text-gray);"></span>
             </div>
             <button class="btn btn-icon" id="editUsernameBtn" title="编辑用户名" data-svg="edit"></button>
           </div>
-          <div class="setting-item" id="username-edit-mode">
+          <div class="setting-item edit-height" id="username-edit-mode">
             <i class="fas fa-user setting-icon"></i>
             <input type="text" class="setting-input" id="usernameInput" placeholder="输入您的名字" autocomplete="off">
-            <button class="btn btn-icon" id="saveUsernameBtn" data-svg="check"></button>
+            <button class="btn btn-icon btn-success" id="saveUsernameBtn" data-svg="check"></button>
           </div>
         </div>
 
         <div id="api-key-section">
-          <div class="setting-item" id="api-key-saved-mode" style="display:none; justify-content:space-between; height:42px; box-sizing:border-box; padding:0 15px;">
-            <div style="display:flex; align-items:center;">
+          <div class="setting-item" id="api-key-saved-mode" style="justify-content:space-between; display:none;">
+            <div style="display:flex; align-items:center; gap:12px;">
               <i class="fas fa-key setting-icon"></i>
-              <span id="api-key-saved-text" style="font-size:0.95rem; color:var(--text-gray); padding-left:8px;"></span>
+              <span id="api-key-saved-text" style="font-size:0.95rem; color:var(--text-gray);"></span>
             </div>
             <button class="btn btn-icon" id="editApiKeyBtn" title="编辑 Key" data-svg="edit"></button>
           </div>
-          <div class="setting-item" id="api-key-edit-mode">
+          <div class="setting-item edit-height" id="api-key-edit-mode">
             <i class="fas fa-key setting-icon"></i>
             <input type="text" class="setting-input" id="apiKeyInput" autocomplete="off">
-            <button class="btn btn-icon" id="saveApiKeyBtn" data-svg="check"></button>
+            <button class="btn btn-icon btn-success" id="saveApiKeyBtn" data-svg="check"></button>
           </div>
           <p id="applyApiKeyText" style="font-size:0.72rem; color:var(--text-extra-light); margin:8px 4px 0 4px;"></p>
         </div>
@@ -466,6 +512,7 @@
     </div>
   </div>
 
+  <!-- 确认弹窗 -->
   <div id="customConfirmModal" class="modal">
       <div class="modal-content" style="max-width:320px; text-align:center; padding: 30px;">
           <p id="customConfirmMessage" style="font-size:1.1rem; margin-bottom:25px;"></p>
@@ -475,8 +522,7 @@
           </div>
       </div>
   </div>
-
-  <!-- 引入分离的 JavaScript 文件 -->
+  
   <script src="script.js"></script>
 </body>
 </html>
