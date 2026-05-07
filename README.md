@@ -60,3 +60,7 @@
 2. 点击起始页右下角的“齿轮”图标，进入设置页面填入 API Key。
 
 3. 点击天气区域可手动输入城市名称或使用地理定位。
+
+## 友情链接
+
+* <a href="https://linux.do/" target="_blank">LINUX DO</a>
