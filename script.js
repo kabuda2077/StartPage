@@ -225,7 +225,7 @@ function editEngines() {
     if (sortableInst) sortableInst.destroy();
     sortableInst = new Sortable(settingsGroupsContainer, { 
       handle: '.handle', animation: 150, 
-      forceFallback: true, // 启用强制回退以完全控制样式
+      forceFallback: true,
       fallbackClass: 'sortable-fallback',
       ghostClass: 'sortable-ghost',
       chosenClass: 'sortable-chosen',
