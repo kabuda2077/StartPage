@@ -55,8 +55,8 @@
 
 #### 天气服务：
 
-访问 <a href="https://dev.qweather.com" target="_blank">和风天气开发者平台</a> 免费申请 API Key。
+1. 访问 <a href="https://dev.qweather.com" target="_blank">和风天气开发者平台</a> 免费申请 API Key。
 
-点击起始页右下角的“齿轮”图标，进入设置页面填入 API Key。
+2. 点击起始页右下角的“齿轮”图标，进入设置页面填入 API Key。
 
-点击天气区域可手动输入城市名称或使用地理定位。
+3. 点击天气区域可手动输入城市名称或使用地理定位。
