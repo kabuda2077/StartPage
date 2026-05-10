@@ -8,7 +8,7 @@
 * 仅保留问候语、天气、搜索与导航核心功能，添加适当交互动效。
 * 支持导航分组的编辑与拖拽排序，可自由添加和管理自定义搜索引擎（试试把鼠标移到右下角）。
 * 支持深色模式一键切换，中英文切换。
-* 纯前端架构，API Key、位置信息、自定义链接等个人配置严格保存在浏览器本地（localStorage）。
+* 纯前端架构，API Key、位置信息、自定义链接等个人配置严格保存在浏览器本地。
 
 ## 📸 预览
 
@@ -16,7 +16,7 @@
 <img width="2559" height="1527" alt="1" src="https://github.com/user-attachments/assets/ea485eae-cfa8-4cdf-b1b8-34139f9a09c9" />
 
 #### 浅色模式
-<img width="2559" height="1527" alt="2" src="https://github.com/user-attachments/assets/9217c36f-d927-4ce0-aa64-09e81a623690" />
+<img width="2559" height="1527" alt="ScreenShot_2026-05-10_210206_526" src="https://github.com/user-attachments/assets/abb18c6b-a8f3-4806-8afb-9f43b5c63452" />
 
 #### 深色模式
 <img width="2559" height="1527" alt="3" src="https://github.com/user-attachments/assets/03dc05b0-9c3d-4e62-a392-495744538cfb" />
