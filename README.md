@@ -13,10 +13,10 @@
 ## 📸 预览
 
 #### 自定义用户名
-<img width="2559" height="1527" alt="1" src="https://github.com/user-attachments/assets/ea485eae-cfa8-4cdf-b1b8-34139f9a09c9" />
+<img width="2559" height="1527" alt="ScreenShot_2026-05-10_212938_559" src="https://github.com/user-attachments/assets/5a5b8b7b-8421-46bd-9d70-ef28ee92627b" />
 
 #### 浅色模式
-<img width="2559" height="1527" alt="ScreenShot_2026-05-10_210522_066" src="https://github.com/user-attachments/assets/ce5fc56b-7490-433f-8fa3-6b660d2c23fe" />
+<img width="2559" height="1527" alt="ScreenShot_2026-05-10_213229_439" src="https://github.com/user-attachments/assets/62dcc647-7bed-4f75-8e8e-ff45e7ddee0f" />
 
 #### 深色模式
 <img width="2559" height="1527" alt="3" src="https://github.com/user-attachments/assets/03dc05b0-9c3d-4e62-a392-495744538cfb" />
