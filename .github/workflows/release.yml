@@ -2,8 +2,10 @@ name: Release
 
 on:
   push:
-    tags:
-      - 'v*'
+    branches:
+      - main
+    paths:
+      - 'manifest.json'
 
 permissions:
   contents: write
@@ -15,16 +17,57 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
 
-      - name: Package extension
+      - name: Read version from manifest.json
+        id: version
         run: |
-          zip -r "StartPage-${{ github.ref_name }}.zip" . \
+          VERSION=$(jq -r '.version' manifest.json)
+          echo "version=v${VERSION}" >> $GITHUB_OUTPUT
+          echo "Releasing version: v${VERSION}"
+
+      - name: Check if release already exists
+        id: check
+        run: |
+          if gh release view "${{ steps.version.outputs.version }}" >/dev/null 2>&1; then
+            echo "exists=true" >> $GITHUB_OUTPUT
+            echo "Release ${{ steps.version.outputs.version }} already exists, skipping."
+          else
+            echo "exists=false" >> $GITHUB_OUTPUT
+          fi
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Extract release notes from CHANGELOG.md
+        if: steps.check.outputs.exists == 'false'
+        id: notes
+        run: |
+          VERSION="${{ steps.version.outputs.version }}"
+          awk -v ver="$VERSION" '
+            $0 ~ "^## \\[?" substr(ver,2) "\\]?" || $0 ~ "^## " ver { found=1; next }
+            found && /^## / { exit }
+            found { print }
+          ' CHANGELOG.md > release_notes.md
+          if [ ! -s release_notes.md ]; then
+            echo "No section for $VERSION found in CHANGELOG.md" >&2
+            echo "See commit history for changes." > release_notes.md
+          fi
+          cat release_notes.md
+
+      - name: Package extension
+        if: steps.check.outputs.exists == 'false'
+        run: |
+          zip -r "StartPage-${{ steps.version.outputs.version }}.zip" . \
             -x "*.git*" \
             -x ".github/*" \
             -x "README.md" \
+            -x "CHANGELOG.md" \
+            -x "release_notes.md" \
             -x "*.zip"
 
       - name: Create Release
+        if: steps.check.outputs.exists == 'false'
         uses: softprops/action-gh-release@v2
         with:
-          files: StartPage-${{ github.ref_name }}.zip
-          generate_release_notes: true
+          tag_name: ${{ steps.version.outputs.version }}
+          name: ${{ steps.version.outputs.version }}
+          body_path: release_notes.md
+          files: StartPage-${{ steps.version.outputs.version }}.zip
