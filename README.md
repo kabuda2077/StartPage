@@ -29,7 +29,7 @@
 ## 🛠️ 安装指南
 #### Chrome / Edge (Chromium 系列)
 
-1. 项目右上角点击 Code-Download ZIP，下载项目源码并解压。
+1. 前往Release下载并解压。
 
 2. 打开浏览器，访问 chrome://extensions/。
 
