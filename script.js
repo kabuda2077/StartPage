@@ -201,7 +201,7 @@ document.getElementById('editApiKeyBtn').onclick = () => { document.getElementBy
 
 searchEngineSelector.onclick = e => { e.stopPropagation(); engineList.classList.toggle('show'); };
 document.onclick = () => engineList.classList.remove('show');
-searchForm.onsubmit = e => { e.preventDefault(); const q = searchInput.value.trim(); if (!q) return; const eng = enginesData.find(e => e.id === (localStorage.getItem('searchEngine') || enginesData[0].id)); window.open(eng.url.replace('{query}', encodeURIComponent(q)), '_blank'); searchInput.value = ''; };
+searchForm.onsubmit = e => { e.preventDefault(); const q = searchInput.value.trim(); if (!q) return; const isUrl = /^https?:\/\//i.test(q) || /^(localhost|127\.0\.0\.1)(:\d+)?(\/.*)?$/i.test(q) || /^[^\s]+\.[a-z]{2,}([:\/?#].*)?$/i.test(q); if (isUrl) { window.open(/^https?:\/\//i.test(q) ? q : 'https://' + q, '_blank'); } else { const eng = enginesData.find(e => e.id === (localStorage.getItem('searchEngine') || enginesData[0].id)); window.open(eng.url.replace('{query}', encodeURIComponent(q)), '_blank'); } };
 
 addNewGroupBtn.addEventListener('click', () => { const n = prompt(t('newGroupNamePrompt')); if (n && n.trim()) { siteData.push({ title: n.trim(), color: '#ffa726', links: [] }); renderSettingsGroups(); renderMainPageGroups(); setTimeout(() => settingsGroupsContainer.scrollTop = settingsGroupsContainer.scrollHeight, 100); } });
 document.getElementById('editEnginesBtn').addEventListener('click', editEngines);
