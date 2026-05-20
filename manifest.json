@@ -1,7 +1,7 @@
 {
   "manifest_version": 3,
   "name": "StartPage",
-  "version": "1.2",
+  "version": "1.3",
   "description": "A clean and customizable new tab page.",
   "chrome_url_overrides": {
     "newtab": "index.html"
