@@ -103,10 +103,10 @@ function getApiKey() { return localStorage.getItem('qweatherApiKey') || ''; }
 function getUserName() { return localStorage.getItem('userName') || ''; }
 
 let siteData = [
-  { title: "media", color: "#e63946", links: [ { name: "Bilibili", url: "https://www.bilibili.com" }, { name: "Rednote", url: "https://www.xiaohongshu.com" }, { name: "YouTube", url: "https://www.youtube.com" } ] },
+  { title: "media", color: "#e63946", links: [ { name: "Bilibili", url: "https://www.bilibili.com" }, { name: "Rednote", url: "https://www.xiaohongshu.com" }, { name: "YouTube", url: "https://www.youtube.com" }, { name: "ZLibrary", url: "https://z-library.sk" } ] },
   { title: "social", color: "#7209b7", links: [ { name: "Jike", url: "https://web.okjike.com" }, { name: "Douban", url: "https://movie.douban.com" }, { name: "Reddit", url: "https://www.reddit.com" }, { name: "Linuxdo", url: "https://linux.do" } ] },
-  { title: "others", color: "#f8961e", links: [ { name: "JD", url: "https://www.jd.com" }, { name: "Taobao", url: "https://www.taobao.com" }, { name: "Gmail", url: "https://mail.google.com" }, { name: "QQmail", url: "https://wx.mail.qq.com" } ] },
-  { title: "ai", color: "#2a9d8f", links: [ { name: "Deepseek", url: "https://chat.deepseek.com" }, { name: "Chatgpt", url: "https://chatgpt.com" }, { name: "Claude", url: "https://claude.ai" }, { name: "Gemini", url: "https://gemini.google.com" } ] }
+  { title: "others", color: "#f8961e", links: [ { name: "JD", url: "https://www.jd.com" }, { name: "Taobao", url: "https://www.taobao.com" }, { name: "Gmail", url: "https://mail.google.com" }, { name: "Qmail", url: "https://wx.mail.qq.com" } ] },
+  { title: "ai", color: "#2a9d8f", links: [ { name: "Gemini", url: "https://gemini.google.com" }, { name: "Claude", url: "https://claude.ai" }, { name: "Chatgpt", url: "https://chatgpt.com" }, { name: "Deepseek", url: "https://chat.deepseek.com" } ] }
 ];
 
 const greeting = document.getElementById("greeting");
@@ -189,10 +189,12 @@ function customConfirm(m) { return new Promise(res => { customConfirmMessage.tex
 
 weatherDisplay.onclick = () => getApiKey() ? (locationModal.style.display = 'flex') : settingsIcon.click();
 locCloseButton.onclick = () => locationModal.style.display = 'none';
+locationModal.addEventListener('click', e => { if (e.target === locationModal) locCloseButton.onclick(); });
 saveLocationBtn.onclick = () => { localStorage.removeItem('weatherCache'); weatherTemp.textContent = t('loading'); fetchWeatherData(locationInput.value); locationModal.style.display = 'none'; };
 useCurrentLocationBtn.onclick = () => { navigator.geolocation.getCurrentPosition(p => { fetchWeatherData({ lat: p.coords.latitude, lon: p.coords.longitude }, true); locationModal.style.display = 'none'; }); };
 settingsIcon.onclick = () => { settingsModal.style.display = 'flex'; renderSettingsGroups(); };
 settingsCloseButton.onclick = () => { settingsModal.style.display = 'none'; saveSiteData(); renderMainPageGroups(); };
+settingsModal.addEventListener('click', e => { if (e.target === settingsModal) settingsCloseButton.onclick(); });
 document.getElementById('langToggleBtnSettings').onclick = () => { currentLang = currentLang === 'zh' ? 'en' : 'zh'; localStorage.setItem('lang', currentLang); updateAllTexts(); };
 document.getElementById('saveUsernameBtn').onclick = () => { localStorage.setItem('userName', document.getElementById('usernameInput').value.trim()); renderUsernameSection(); updateGreeting(); };
 document.getElementById('editUsernameBtn').onclick = () => { document.getElementById('username-saved-mode').style.display = 'none'; document.getElementById('username-edit-mode').style.display = 'flex'; };
@@ -230,7 +232,7 @@ function editEngines() {
       ghostClass: 'sortable-ghost',
       chosenClass: 'sortable-chosen',
       filter: '#addEngBtn, #backFromEng', 
-      onEnd: e => { const item = siteData.splice(e.oldIndex, 1)[0]; siteData.splice(e.newIndex, 0, item); saveSiteData(); renderMainPageGroups(); } 
+      onEnd: e => { const item = enginesData.splice(e.oldIndex, 1)[0]; enginesData.splice(e.newIndex, 0, item); saveEnginesData(); renderEngineDropdown(); }
     });
   };
   renderEngineList();
@@ -238,7 +240,7 @@ function editEngines() {
 
 function editSingleEngine(idx, onBack) {
   const eng = enginesData[idx]; settingsTitle.textContent = t('editEngine', {name: eng.name}); document.getElementById('langToggleBtnSettings').style.display = 'none';
-  settingsGroupsContainer.innerHTML = `<div style="display:flex; flex-direction:column; gap:12px; padding:4px 0;"><div class="setting-item edit-height" style="flex-direction:column; align-items:flex-start; gap:6px; padding:12px; height:auto;"><label style="font-size:0.8rem; color:var(--text-light);">${t('engineName')}</label><input type="text" class="setting-input standalone-input" id="engEditName" value="${eng.name}" style="width:100%;"></div><div class="setting-item edit-height" style="flex-direction:column; align-items:flex-start; gap:6px; padding:12px; height:auto;"><label style="font-size:0.8rem; color:var(--text-light);">${t('engineUrl')}</label><input type="text" class="setting-input standalone-input" id="engEditUrl" value="${eng.url}" style="width:100%;"></div></div><div style="display:flex; flex-direction:column; gap:10px; margin-top:15px;"><button id="saveEngBtn" class="btn btn-primary">${CHECK_ICON_SVG} ${t('save')}</button><button id="backFromSingleEng" class="btn btn-secondary">${t('back')}</button></div>`;
+  settingsGroupsContainer.innerHTML = `<div style="display:flex; flex-direction:column; gap:22px; padding:8px 0;"><div style="display:flex; flex-direction:column; gap:10px;"><label style="font-size:0.8rem; color:var(--text-light); padding-left:4px;">${t('engineName')}</label><input type="text" class="setting-input standalone-input" id="engEditName" value="${eng.name}" style="width:100%;"></div><div style="display:flex; flex-direction:column; gap:10px;"><label style="font-size:0.8rem; color:var(--text-light); padding-left:4px;">${t('engineUrl')}</label><input type="text" class="setting-input standalone-input" id="engEditUrl" value="${eng.url}" style="width:100%;"></div></div><div style="display:flex; flex-direction:column; gap:10px; margin-top:22px;"><button id="saveEngBtn" class="btn btn-primary">${CHECK_ICON_SVG} ${t('save')}</button><button id="backFromSingleEng" class="btn btn-secondary">${t('back')}</button></div>`;
   document.getElementById('saveEngBtn').onclick = () => {
     const name = document.getElementById('engEditName').value.trim(); let url  = document.getElementById('engEditUrl').value.trim(); if (!name || !url) { alert(t('engineNameUrlEmpty')); return; }
     if (!url.includes('{query}')) { let domain = url.replace(/^https?:\/\//, '').replace(/^www\./, '').split('/')[0].toLowerCase(); const k = { 'google': 'https://www.google.com/search?q={query}', 'baidu': 'https://www.baidu.com/s?wd={query}', 'bing': 'https://www.bing.com/search?q={query}', 'duckduckgo': 'https://duckduckgo.com/?q={query}', 'yahoo': 'https://search.yahoo.com/search?p={query}', 'yandex': 'https://yandex.com/search/?text={query}', 'bilibili': 'https://search.bilibili.com/all?keyword={query}', 'github': 'https://github.com/search?q={query}', 'zhihu': 'https://www.zhihu.com/search?q={query}' }; let m = false; for (let key in k) { if (domain.includes(key)) { url = k[key]; m = true; break; } } if (!m) { let p = url.startsWith('http') ? '' : 'https://'; url = `${p}${url}/search?q={query}`; } }
@@ -273,17 +275,26 @@ function renderSettingsGroups() {
 
 function editGroup(idx) {
   const g = siteData[idx]; settingsTitle.innerHTML = `<i class="fas fa-folder-open" style="color:${g.color}; margin-right:8px;"></i>${g.title}`; globalSettingsSection.style.display = "none"; settingsActions.style.display = "none"; document.getElementById('langToggleBtnSettings').style.display = 'none';
-  settingsGroupsContainer.innerHTML = `<div id="l-list" style="display:flex; flex-direction:column; gap:12px;"></div><div style="display:flex; flex-direction:column; gap:10px; margin-top:15px;"><button id="addL" class="btn btn-primary"><i class="fas fa-plus"></i> ${t('addNewLink')}</button><button id="backG" class="btn btn-secondary">${t('back')}</button></div>`;
+  settingsGroupsContainer.innerHTML = `<div id="l-list" style="display:flex; flex-direction:column; gap:14px;"></div><div style="display:flex; flex-direction:column; gap:10px; margin-top:15px;"><button id="addL" class="btn btn-primary"><i class="fas fa-plus"></i> ${t('addNewLink')}</button><button id="backG" class="btn btn-secondary">${t('back')}</button></div>`;
   const list = document.getElementById('l-list');
   const render = () => {
     list.innerHTML = '';
     g.links.forEach((l, li) => {
-      const d = document.createElement('div'); d.className = 'link-edit-item';
-      d.innerHTML = `<input type="text" class="setting-input standalone-input" value="${l.name}" placeholder="名称" style="flex:0.3;"><input type="text" class="setting-input standalone-input" value="${l.url}" placeholder="URL" style="flex:0.7;"><button class="btn btn-icon btn-danger">${TRASH_ICON_SVG}</button>`;
+      const d = document.createElement('div'); d.className = 'setting-item link-item';
+      d.innerHTML = `<i class="fas fa-bars handle"></i><input type="text" class="setting-input" value="${l.name}" placeholder="${t('linkNamePlaceholder')}" style="flex:0.22;"><div class="link-divider"></div><input type="text" class="setting-input" value="${l.url}" placeholder="URL" style="flex:0.78;"><button class="btn btn-icon btn-danger">${TRASH_ICON_SVG}</button>`;
       d.querySelectorAll('input')[0].oninput = e => g.links[li].name = e.target.value;
       d.querySelectorAll('input')[1].oninput = e => g.links[li].url = e.target.value;
       d.querySelector('button').onclick = async () => { if (await customConfirm(t('delLinkConfirm'))) { g.links.splice(li, 1); render(); } };
       list.appendChild(d);
+    });
+    if (sortableInst) sortableInst.destroy();
+    sortableInst = new Sortable(list, {
+      handle: '.handle', animation: 150,
+      forceFallback: true,
+      fallbackClass: 'sortable-fallback',
+      ghostClass: 'sortable-ghost',
+      chosenClass: 'sortable-chosen',
+      onEnd: e => { const item = g.links.splice(e.oldIndex, 1)[0]; g.links.splice(e.newIndex, 0, item); }
     });
   };
   render();
