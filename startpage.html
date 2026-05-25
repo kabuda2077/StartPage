@@ -1,0 +1,851 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Start Page</title>
+
+  <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.7.2/css/all.min.css">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/qweather-icons@1.7.0/font/qweather-icons.css">
+
+  <script src="https://cdn.jsdelivr.net/npm/sortablejs@1.15.6/Sortable.min.js" defer></script>
+
+  <style>
+/* === 颜色变量定义 === */
+:root {
+  --bg-color: #faf9f7;       
+  --text-color: #333333;
+  --text-gray: #7a7a7a;       
+  --text-light: #bcbcbc;
+  --text-extra-light: #dcdcdc;
+  --card-bg: #ffffff;
+  --card-border: #f2f1ef;      
+  --input-border: #ecebe9;    
+  --input-bg: #ffffff;
+  --hover-bg: #f5f4f2;        
+  --modal-overlay: rgba(0,0,0,0.3);
+  --setting-item-bg: #fcfcfb;
+  --setting-item-border: #f0efed;
+  --search-shadow: rgba(0,0,0,0.02);
+}
+
+/* === 深色模式配色 === */
+body.dark-mode {
+  --bg-color: #121212;
+  --text-color: #e0e0e0;
+  --text-gray: #b0b0b0;
+  --text-light: #888;
+  --text-extra-light: #666;
+  --card-bg: #1e1e1e;
+  --card-border: #2d2d2d;
+  --input-border: #444;
+  --input-bg: #252525;
+  --hover-bg: #2d2d2d;
+  --modal-overlay: rgba(0,0,0,0.7);
+  --setting-item-bg: #252525;
+  --setting-item-border: #333;
+  --search-shadow: rgba(0,0,0,0.2);
+}
+
+body {
+  margin: 0;
+  background-color: var(--bg-color);
+  color: var(--text-color);
+  font-family: 'JetBrains Mono', 'Sarasa Term SC', 'PingFang SC', 'Microsoft YaHei', sans-serif;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  min-height: 100vh;
+  padding: 20px;
+  justify-content: center;
+  box-sizing: border-box;
+  transition: background-color 0.3s ease, color 0.3s ease;
+}
+
+/* === 主界面阶梯滑入动画 === */
+html.is-first-visit .reveal-target {
+  opacity: 0;
+  transform: translate3d(0, 30px, 0); 
+  will-change: transform, opacity;
+}
+html.do-reveal .reveal-target {
+  animation: slideUpFadeIn 0.8s cubic-bezier(0.4, 0, 0.2, 1) both;
+  animation-delay: calc(var(--delay, 0) * 80ms);
+}
+
+@keyframes slideUpFadeIn {
+  0% { opacity: 0; transform: translate3d(0, 30px, 0); }
+  100% { opacity: 1; transform: translate3d(0, 0, 0); }
+}
+
+html.theme-transition-expand body,
+html.theme-transition-shrink body {
+  transition: none !important;
+}
+
+::view-transition-old(root),
+::view-transition-new(root) {
+  animation: none;
+  mix-blend-mode: normal;
+}
+
+.theme-transition-expand::view-transition-old(root) { z-index: 1; }
+.theme-transition-expand::view-transition-new(root) {
+  z-index: 2;
+  animation: clip-expand 0.6s cubic-bezier(0.4, 0, 0.2, 1) forwards;
+}
+
+.theme-transition-shrink::view-transition-old(root) {
+  z-index: 2;
+  animation: clip-shrink 0.6s cubic-bezier(0.4, 0, 0.2, 1) forwards;
+}
+.theme-transition-shrink::view-transition-new(root) { z-index: 1; }
+
+@keyframes clip-expand {
+  0% { clip-path: circle(0px at var(--click-x) var(--click-y)); }
+  100% { clip-path: circle(150vw at var(--click-x) var(--click-y)); }
+}
+@keyframes clip-shrink {
+  0% { clip-path: circle(150vw at var(--click-x) var(--click-y)); }
+  100% { clip-path: circle(0px at var(--click-x) var(--click-y)); }
+}
+
+h1 {
+  font-size: 1.6rem;
+  margin-bottom: 1.5em;
+  text-align: center;
+  font-weight: bold;
+  color: var(--text-color);
+}
+
+.datetime-weather-container {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 800px;
+  max-width: 90%;
+  margin-bottom: 2em;
+}
+.weather-display {
+  display: flex;
+  align-items: center;
+  cursor: pointer;
+  color: var(--text-gray);
+  font-weight: 500;
+  font-size: 0.95rem;
+}
+.temperature-info {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  gap: 15px;
+}
+.weather-detail {
+  font-size: 0.95rem;
+  color: var(--text-light);
+}
+
+.search-box {
+  margin-bottom: 2.8em;
+  width: 820px;
+  max-width: 100%;
+}
+
+.search-container {
+  position: relative;
+  display: flex;
+  align-items: center;
+  background-color: var(--input-bg);
+  border-radius: 10px;
+  border: 1px solid var(--input-border);
+  box-shadow: 0 4px 12px var(--search-shadow);
+  transition: all 0.3s ease;
+}
+.search-container:focus-within { border-color: var(--text-light); }
+
+.search-engine-selector {
+  padding: 14px 15px;
+  cursor: pointer;
+  position: relative;
+  color: var(--text-gray);
+}
+.search-engine-selector::after {
+  content: ''; position: absolute; top: 50%; right: 0;
+  transform: translateY(-50%); width: 1px; height: 30px;
+  background-color: var(--card-border);
+}
+
+.engine-list {
+  display: none;
+  position: absolute;
+  top: 115%; left: 0;
+  background-color: var(--card-bg);
+  border: 1px solid var(--input-border);
+  border-radius: 8px;
+  list-style: none;
+  padding: 5px 0; margin: 0; z-index: 10;
+  width: 140px;
+  box-shadow: 0 8px 20px rgba(0,0,0,0.15);
+}
+.engine-list.show { display: block; }
+.engine-list li {
+  padding: 10px 15px; display: flex; align-items: center; gap: 10px;
+  font-size: 0.9rem; color: var(--text-color); cursor: pointer;
+}
+.engine-list li:hover { background-color: var(--hover-bg); }
+
+input[type="text"], input[type="url"] {
+  background-color: transparent; border: none; padding: 14px 18px;
+  font-size: 1rem; color: var(--text-color); width: 100%;
+  box-sizing: border-box; font-family: inherit;
+}
+input[type="text"]::placeholder, input[type="url"]::placeholder { color: var(--text-extra-light); }
+input[type="text"]:focus, input[type="url"]:focus { outline: none; }
+
+.groups {
+  display: flex; flex-wrap: wrap; justify-content: center; gap: 15px;
+  width: 820px; max-width: 100%;
+}
+.group {
+  background-color: var(--card-bg); padding: 20px; border-radius: 12px;
+  width: 180px; flex-grow: 1; max-width: calc(50% - 15px);
+  box-sizing: border-box; border: 1px solid var(--card-border);
+  transition: transform 0.2s ease, background-color 0.3s ease;
+}
+.group:hover { transform: translateY(-2px); }
+@media (min-width: 768px) { .group { max-width: calc(25% - 11.5px); } }
+
+.group-title {
+  font-weight: bold; margin-bottom: 12px;
+  border-bottom: 1px solid var(--card-border);
+  padding-bottom: 8px; font-size: 1rem;
+}
+
+.group a {
+  display: block; text-decoration: none; color: var(--text-gray);
+  margin: 6px 0; font-size: 0.88rem; font-weight: 500;
+  transition: all 0.2s ease;
+}
+.group a:hover { color: var(--link-hover-color); padding-left: 2px; }
+
+.modal {
+  display: none; position: fixed; z-index: 1000; left: 0; top: 0; width: 100%; height: 100%;
+  background-color: var(--modal-overlay); backdrop-filter: blur(2px);
+  justify-content: center; align-items: center; animation: fadeIn 0.2s ease;
+}
+.modal-content {
+  background-color: var(--card-bg); padding: 25px 30px 35px 30px;
+  border-radius: 14px; width: 90%; max-width: 450px;
+  position: relative; display: flex; flex-direction: column;
+  box-shadow: 0 10px 40px rgba(0,0,0,0.15); color: var(--text-color);
+}
+.modal-header {
+  display: flex; justify-content: space-between; align-items: center;
+  margin-bottom: 20px; padding-bottom: 15px; border-bottom: 1px solid var(--card-border);
+}
+.modal-header h2 { margin: 0; font-size: 1.2rem; color: var(--text-color); font-weight: 600; }
+
+.header-actions { display: flex; align-items: center; gap: 8px; margin-right: 5px; }
+
+.header-btn {
+  color: var(--text-light); font-family: inherit; font-size: 22px; line-height: 1;
+  width: 32px; height: 32px; padding: 0; display: flex; align-items: center;
+  justify-content: center; cursor: pointer; background-color: transparent;
+  transition: all 0.2s ease; user-select: none;
+}
+.header-btn:hover { color: var(--text-color); background-color: var(--hover-bg); }
+.header-btn:active { background-color: var(--hover-bg); }
+.header-btn.lang-btn { font-size: 0.8rem; font-weight: 600; border: none; border-radius: 8px; }
+.header-btn.close-btn { border-radius: 50%; border: 1px solid var(--card-border); }
+
+.btn {
+  font-family: inherit; padding: 10px 15px; border: none; border-radius: 8px;
+  cursor: pointer; font-size: 0.95rem; font-weight: 500;
+  display: inline-flex; align-items: center; justify-content: center; gap: 8px;
+}
+
+.btn-primary, .btn-secondary, .btn-accent {
+  height: 42px;
+  box-sizing: border-box;
+}
+
+.btn-primary { background-color: #f8961e; color: #fff; }
+.btn-secondary { background-color: var(--hover-bg); color: var(--text-gray); }
+.btn-accent { background-color: #eef2ff; color: #4f46e5; border: 1px solid #e0e7ff; }
+body.dark-mode .btn-accent { background-color: #1e293b; color: #818cf8; border-color: #334155; }
+.btn-icon { padding: 0; width: 32px; height: 32px; background: transparent; color: var(--text-light); flex-shrink: 0; }
+.btn-icon:hover { background: var(--hover-bg); color: var(--text-color); }
+.btn-danger { color: #e63946; }
+.btn-danger:hover { background: rgba(230, 57, 70, 0.1); color: #d32f2f; }
+
+.btn-success { color: #10b981; }
+.btn-success:hover { background: rgba(16, 185, 129, 0.1); }
+
+.setting-item {
+  display: flex; align-items: center; gap: 12px;
+  background: var(--setting-item-bg); border: 1px solid var(--setting-item-border);
+  padding: 0 15px;
+  border-radius: 8px; 
+  transition: background-color 0.2s ease, border-color 0.2s ease, box-shadow 0.2s ease;
+  min-height: 42px;
+  box-sizing: border-box;
+}
+.setting-item:hover { box-shadow: 0 4px 12px rgba(0,0,0,0.03); background: var(--card-bg); }
+
+.setting-item.group-item { min-height: 48px; }
+.setting-item.edit-height { min-height: 48px; }
+
+.setting-item .handle, .setting-item .setting-icon { 
+  width: 20px; text-align: center; flex-shrink: 0; 
+  color: var(--text-light); font-size: 0.95rem;
+}
+.setting-item .handle { cursor: grab; }
+
+.setting-input {
+  flex: 1; background-color: transparent !important; border: none !important;
+  padding: 8px 0 !important; color: var(--text-color); font-family: inherit;
+}
+.setting-input:focus { outline: none; }
+.setting-input::placeholder { color: var(--text-extra-light); }
+
+.standalone-input {
+  padding: 0 15px !important;
+  height: 42px !important;
+  flex: 0 0 auto !important;
+  box-sizing: border-box;
+  background: var(--setting-item-bg) !important;
+  border: 1px solid var(--setting-item-border) !important;
+  border-radius: 8px;
+}
+
+#settings-groups-container {
+  max-height: 400px; overflow-y: auto; padding-right: 5px;
+  display: flex; flex-direction: column; gap: 14px; 
+}
+#settings-groups-container::-webkit-scrollbar { width: 6px; }
+#settings-groups-container::-webkit-scrollbar-thumb { background: #d0d0d0; border-radius: 4px; }
+
+.link-item { min-height: 48px; }
+.link-divider {
+  width: 1px; height: 22px; flex-shrink: 0;
+  background-color: var(--setting-item-border);
+}
+
+.sortable-ghost {
+  opacity: 1 !important;
+  background-color: var(--hover-bg) !important;
+  border: 1px dashed var(--text-light) !important;
+}
+.sortable-chosen {
+  opacity: 1 !important;
+  background-color: var(--card-bg) !important;
+  cursor: grabbing !important;
+}
+.sortable-fallback {
+  opacity: 1 !important;
+  background-color: var(--card-bg) !important;
+  box-shadow: 0 10px 30px rgba(0,0,0,0.15) !important;
+  border-radius: 8px;
+  z-index: 9999;
+  pointer-events: none;
+}
+
+#floating-controls {
+  position: fixed; bottom: 25px; right: 25px;
+  display: flex; flex-direction: column; gap: 12px;
+  z-index: 999; opacity: 0; transition: opacity 0.3s ease; padding: 10px; 
+}
+#floating-controls:hover { opacity: 1; }
+
+.floating-btn {
+  font-size: 1.4rem; color: var(--text-light); cursor: pointer;
+  transition: all 0.3s ease; background: none; border: none; padding: 0;
+  display: flex; align-items: center; justify-content: center; width: 32px; height: 32px;
+}
+.floating-btn:hover { color: var(--text-color); transform: rotate(45deg); }
+
+#welcome-overlay {
+  position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+  background-color: var(--bg-color); z-index: 9999;
+  display: flex; align-items: center; justify-content: center;
+  transition: opacity 0.8s ease;
+}
+#welcome-input-container {
+  display: flex; flex-direction: column; align-items: center;
+  transition: opacity 0.6s cubic-bezier(0.4, 0, 0.2, 1), transform 0.6s cubic-bezier(0.4, 0, 0.2, 1);
+}
+#welcome-prompt {
+  font-size: 3.0rem; color: #333; margin-bottom: 30px; font-weight: 600; letter-spacing: 0;
+}
+#welcome-name-input {
+  font-size: 1.1rem; padding: 10px 24px; border-radius: 10px; border: none;
+  background: var(--card-bg); color: var(--text-color); text-align: center; box-shadow: 0 4px 12px var(--search-shadow);
+  width: 300px; max-width: 80vw; transition: all 0.3s ease; box-sizing: border-box;
+}
+#welcome-name-input:focus { outline: none; }
+#welcome-name-input::placeholder { font-size: 0.85rem; color: #bbb; }
+#welcome-greeting-container {
+  position: absolute; opacity: 0; pointer-events: none;
+  transform: translateY(30px); transition: opacity 0.8s cubic-bezier(0.4, 0, 0.2, 1), transform 0.8s cubic-bezier(0.4, 0, 0.2, 1);
+}
+#welcome-greeting-text {
+  font-size: 3.0rem; color: #222; font-weight: bold; margin: 0; letter-spacing: 0;
+}
+  </style>
+</head>
+<body>
+  <div id="welcome-overlay" style="display: none;">
+    <div id="welcome-input-container">
+      <div id="welcome-prompt">choose a name for you</div>
+      <input type="text" id="welcome-name-input" placeholder="Press Enter to confirm" autocomplete="off" />
+    </div>
+    <div id="welcome-greeting-container">
+      <div id="welcome-greeting-text"></div>
+    </div>
+  </div>
+
+  <h1 id="greeting" class="reveal-target" style="--delay: 1;">Hello!</h1>
+  <div class="datetime-weather-container reveal-target" style="--delay: 2;">
+    <div id="weather" class="weather-display">
+      <div class="temperature-info">
+        <span id="weather-temp">--°C</span>
+        <span id="weather-feels-like" class="weather-detail">--</span>
+        <span id="weather-high-low" class="weather-detail">--</span>
+      </div>
+    </div>
+  </div>
+
+  <div class="search-box reveal-target" style="--delay: 3;">
+    <form id="search-form">
+      <div class="search-container">
+        <div id="search-engine-selector" class="search-engine-selector">
+          <i id="current-engine-icon" class="fab fa-google"></i>
+          <ul id="engine-list" class="engine-list"></ul>
+        </div>
+        <input id="search-input" type="text" name="q" placeholder="Search something..." autofocus autocomplete="off" />
+      </div>
+    </form>
+  </div>
+
+  <div class="groups reveal-target" style="--delay: 4;"></div>
+
+  <div id="locationModal" class="modal">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h2 id="loc-modal-title">输入您的位置</h2>
+        <div class="header-actions">
+          <button class="header-btn close-btn" id="loc-close-button">&times;</button>
+        </div>
+      </div>
+      <input type="text" id="locationInput" class="standalone-input" style="width:100%; margin-bottom:15px;" />
+      <div style="display:flex; flex-direction:column; gap:10px; margin-bottom:8px;">
+        <button id="saveLocationBtn" class="btn btn-primary">保存位置</button>
+        <button id="useCurrentLocationBtn" class="btn btn-secondary">使用当前位置</button>
+      </div>
+      <p id="locationError" style="color:#e63946; font-size:0.8rem; margin-top:10px; text-align:center;"></p>
+    </div>
+  </div>
+
+  <div id="floating-controls" class="reveal-target" style="--delay: 5;">
+    <div id="theme-toggle-icon" class="floating-btn" title="Toggle Dark Mode"></div>
+    <div id="settings-icon" class="floating-btn" title="Settings">
+      <i class="fas fa-cog"></i>
+    </div>
+  </div>
+
+  <div id="settingsModal" class="modal">
+    <div class="modal-content" style="max-width: 550px;">
+      <div class="modal-header">
+        <h2 id="settings-title">设置</h2>
+        <div class="header-actions">
+          <button class="header-btn lang-btn" id="langToggleBtnSettings">EN</button>
+          <button class="header-btn close-btn" id="settings-close-button">&times;</button>
+        </div>
+      </div>
+      <div id="settings-groups-container"></div>
+      
+      <div id="settings-actions" style="margin-top:15px; margin-bottom:15px;">
+        <button id="addNewGroupBtn" class="btn btn-primary" style="width:100%;">
+          <i class="fas fa-plus"></i> <span id="addNewGroupBtnText">添加新分组</span>
+        </button>
+      </div>
+      
+      <div id="global-settings-section" style="border-top:1px solid var(--card-border); padding-top:15px; display:flex; flex-direction:column; gap:14px;">
+        <button id="editEnginesBtn" class="btn btn-accent" style="width:100%;">
+          <i class="fas fa-search"></i> <span id="editEnginesBtnText">自定义搜索引擎</span>
+        </button>
+
+        <div id="username-section">
+          <div class="setting-item" id="username-saved-mode" style="justify-content:space-between; display:none;">
+            <div style="display:flex; align-items:center; gap:12px;">
+              <i class="fas fa-user setting-icon"></i>
+              <span id="username-saved-text" style="font-size:0.95rem; color:var(--text-gray);"></span>
+            </div>
+            <button class="btn btn-icon" id="editUsernameBtn" title="编辑用户名" data-svg="edit"></button>
+          </div>
+          <div class="setting-item edit-height" id="username-edit-mode">
+            <i class="fas fa-user setting-icon"></i>
+            <input type="text" class="setting-input" id="usernameInput" placeholder="输入您的名字" autocomplete="off">
+            <button class="btn btn-icon btn-success" id="saveUsernameBtn" data-svg="check"></button>
+          </div>
+        </div>
+
+        <div id="api-key-section">
+          <div class="setting-item" id="api-key-saved-mode" style="justify-content:space-between; display:none;">
+            <div style="display:flex; align-items:center; gap:12px;">
+              <i class="fas fa-key setting-icon"></i>
+              <span id="api-key-saved-text" style="font-size:0.95rem; color:var(--text-gray);"></span>
+            </div>
+            <button class="btn btn-icon" id="editApiKeyBtn" title="编辑 Key" data-svg="edit"></button>
+          </div>
+          <div class="setting-item edit-height" id="api-key-edit-mode">
+            <i class="fas fa-key setting-icon"></i>
+            <input type="text" class="setting-input" id="apiKeyInput" autocomplete="off">
+            <button class="btn btn-icon btn-success" id="saveApiKeyBtn" data-svg="check"></button>
+          </div>
+          <p id="applyApiKeyText" style="font-size:0.72rem; color:var(--text-extra-light); margin:8px 4px 0 4px;"></p>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div id="customConfirmModal" class="modal">
+      <div class="modal-content" style="max-width:320px; text-align:center; padding: 30px;">
+          <p id="customConfirmMessage" style="font-size:1.1rem; margin-bottom:25px;"></p>
+          <div style="display:flex; gap:15px; justify-content:center;">
+              <button class="btn btn-primary" style="background-color:#e63946; flex:1;" id="confirm-yes">是</button>
+              <button class="btn btn-secondary" style="flex:1;" id="confirm-no">否</button>
+          </div>
+      </div>
+  </div>
+  <script>
+if (!localStorage.getItem('hasVisited')) {
+  document.documentElement.classList.add('is-first-visit');
+}
+
+const i18n = {
+  zh: {
+    settings: "设置", inputLocation: "输入您的位置", locPlaceholder: "例如：广州 或 Beijing", saveLoc: "保存位置", useCurLoc: "使用当前位置",
+    addNewGroup: "添加新分组", customEngine: "自定义搜索引擎", apiKeySet: "API Key 已设置", inputApiKey: "输入和风天气 API Key",
+    applyApiKey: '前往 <a href="https://dev.qweather.com" target="_blank" style="color:inherit; text-decoration:underline;">dev.qweather.com</a> 免费申请 API Key',
+    searchPlaceholder: "Search something...", searchWith: "Search with {name}", delGroupConfirm: "确认删除该分组及内部所有链接吗?",
+    delLinkConfirm: "确认删除该链接吗?", delEngineConfirm: "确认删除\"{name}\"?", editEngine: "编辑：{name}", engineName: "名称",
+    engineNamePlaceholder: "如: Google", engineUrl: "搜索网址 （只需输入如 baidu.com 即可）", engineUrlPlaceholder: "例如: baidu.com",
+    save: "保存", back: "返回", addNewLink: "添加新链接", noLinks: "该分组下暂无链接", linkNamePlaceholder: "网站名称",
+    newGroupNamePrompt: "请输入新分组名称:", engineNameUrlEmpty: "名称和网址不能为空", keepOneEngine: "至少保留一个搜索引擎",
+    yes: "是", no: "否", needApiKey: "天气服务需要自行申请API Key，点击右下角齿轮进行设置", clickToGetLoc: "点击获取位置",
+    loading: "加载中...", locNotSupported: "您的浏览器不支持地理定位。", gettingLoc: "正在获取当前位置...",
+    locFailed: "定位失败，请手动输入城市或检查权限。", feelsLike: "FL", groupNamePlaceholder: "分组名称",
+    editLinksTitle: "编辑链接", delGroupTitle: "删除分组", dragSortTitle: "拖动排序", delLinkTitle: "删除链接",
+    editBtnTitle: "编辑", delBtnTitle: "删除", usernamePlaceholder: "输入您的名字", welcomePrompt: "choose a name for you", welcomePlaceholder: "Press Enter to confirm"
+  },
+  en: {
+    settings: "Settings", inputLocation: "Enter your location", locPlaceholder: "e.g., Guangzhou or London", saveLoc: "Save Location", useCurLoc: "Use Current Location",
+    addNewGroup: "Add New Group", customEngine: "Search Engines", apiKeySet: "API Key is Set", inputApiKey: "Enter QWeather API Key",
+    applyApiKey: 'Get a free API Key at <a href="https://dev.qweather.com" target="_blank" style="color:inherit; text-decoration:underline;">dev.qweather.com</a>',
+    searchPlaceholder: "Search something...", searchWith: "Search with {name}", delGroupConfirm: "Delete this group and all its links?",
+    delLinkConfirm: "Delete this link?", delEngineConfirm: "Delete \"{name}\"?", editEngine: "Edit: {name}", engineName: "Name",
+    engineNamePlaceholder: "e.g., Google", engineUrl: "Search URL (e.g., just enter google.com)", engineUrlPlaceholder: "e.g., google.com",
+    save: "Save", back: "Back", addNewLink: "Add New Link", noLinks: "No links in this group", linkNamePlaceholder: "Site Name",
+    newGroupNamePrompt: "Enter new group name:", engineNameUrlEmpty: "Name and URL cannot be empty", keepOneEngine: "Keep at least one search engine",
+    yes: "Yes", no: "No", needApiKey: "API Key is required for weather. Click the gear icon to set it.", clickToGetLoc: "Click to get location",
+    loading: "Loading...", locNotSupported: "Geolocation is not supported by your browser.", gettingLoc: "Getting current location...",
+    locFailed: "Location failed. Please enter manually or check permissions.", feelsLike: "FL", groupNamePlaceholder: "Group Name",
+    editLinksTitle: "Edit Links", delGroupTitle: "Delete Group", dragSortTitle: "Drag to sort", delLinkTitle: "Delete Link",
+    editBtnTitle: "Edit", delBtnTitle: "Delete", usernamePlaceholder: "Enter your name", welcomePrompt: "choose a name for you", welcomePlaceholder: "Press Enter to confirm"
+  }
+};
+
+let currentLang = localStorage.getItem('lang') || 'zh';
+function t(key, params) {
+  let text = i18n[currentLang][key] || key;
+  if (params) for (let k in params) text = text.replace(`{${k}}`, params[k]);
+  return text;
+}
+
+function getGreetingMsg() {
+  const hour = new Date().getHours();
+  let greetings = [];
+  if (hour >= 0 && hour < 5) greetings = ["up late, night owl?", "it's late, get some rest.", "still awake?"];
+  else if (hour >= 5 && hour < 9) greetings = ["early bird!", "good morning, early riser!", "ready for a new day?"];
+  else if (hour >= 9 && hour < 12) greetings = ["good morning!", "have a great morning!", "rise and shine!"];
+  else if (hour >= 12 && hour < 18) greetings = ["good afternoon!", "hope your day is going well!", "stay focused!"];
+  else if (hour >= 18 && hour < 22) greetings = ["good evening!", "time to wind down.", "hope you had a great day!"];
+  else greetings = ["good night!", "late night browsing?", "time to rest soon."];
+  return greetings[Math.floor(Math.random() * greetings.length)];
+}
+
+const SUN_ICON = `<i class="fas fa-sun"></i>`;
+const MOON_ICON = `<i class="fas fa-moon"></i>`;
+const themeToggleBtn = document.getElementById('theme-toggle-icon');
+
+function applyTheme(theme) {
+  if (theme === 'dark') {
+    document.body.classList.add('dark-mode');
+    themeToggleBtn.innerHTML = SUN_ICON;
+  } else {
+    document.body.classList.remove('dark-mode');
+    themeToggleBtn.innerHTML = MOON_ICON;
+  }
+}
+
+themeToggleBtn.addEventListener('click', (e) => {
+  const isDark = document.body.classList.contains('dark-mode');
+  const newTheme = isDark ? 'light' : 'dark';
+  const x = e.clientX; const y = e.clientY;
+  document.documentElement.style.setProperty('--click-x', `${x}px`);
+  document.documentElement.style.setProperty('--click-y', `${y}px`);
+  if (!document.startViewTransition) { localStorage.setItem('theme', newTheme); applyTheme(newTheme); return; }
+  const transitionClass = isDark ? 'theme-transition-shrink' : 'theme-transition-expand';
+  document.documentElement.classList.add(transitionClass);
+  const transition = document.startViewTransition(() => { localStorage.setItem('theme', newTheme); applyTheme(newTheme); });
+  transition.finished.finally(() => { document.documentElement.classList.remove('theme-transition-expand', 'theme-transition-shrink'); });
+});
+
+function updateAllTexts() {
+  document.getElementById('langToggleBtnSettings').textContent = currentLang === 'zh' ? 'EN' : '中';
+  document.getElementById('loc-modal-title').textContent = t('inputLocation');
+  document.getElementById('locationInput').placeholder = t('locPlaceholder');
+  document.getElementById('saveLocationBtn').textContent = t('saveLoc');
+  document.getElementById('useCurrentLocationBtn').textContent = t('useCurLoc');
+  document.getElementById('settings-title').textContent = t('settings');
+  document.getElementById('addNewGroupBtnText').textContent = t('addNewGroup');
+  document.getElementById('editEnginesBtnText').textContent = t('customEngine');
+  document.getElementById('usernameInput').placeholder = t('usernamePlaceholder');
+  document.getElementById('apiKeyInput').placeholder = t('inputApiKey');
+  document.getElementById('applyApiKeyText').innerHTML = t('applyApiKey');
+  document.getElementById('confirm-yes').textContent = t('yes');
+  document.getElementById('confirm-no').textContent = t('no');
+  renderUsernameSection();
+  renderApiKeySection();
+}
+
+function getApiKey() { return localStorage.getItem('qweatherApiKey') || ''; }
+function getUserName() { return localStorage.getItem('userName') || ''; }
+
+let siteData = [
+  { title: "media", color: "#e63946", links: [ { name: "Bilibili", url: "https://www.bilibili.com" }, { name: "Rednote", url: "https://www.xiaohongshu.com" }, { name: "YouTube", url: "https://www.youtube.com" }, { name: "ZLibrary", url: "https://z-library.sk" } ] },
+  { title: "social", color: "#7209b7", links: [ { name: "Jike", url: "https://web.okjike.com" }, { name: "Douban", url: "https://movie.douban.com" }, { name: "Reddit", url: "https://www.reddit.com" }, { name: "Linuxdo", url: "https://linux.do" } ] },
+  { title: "others", color: "#f8961e", links: [ { name: "JD", url: "https://www.jd.com" }, { name: "Taobao", url: "https://www.taobao.com" }, { name: "Gmail", url: "https://mail.google.com" }, { name: "Qmail", url: "https://wx.mail.qq.com" } ] },
+  { title: "ai", color: "#2a9d8f", links: [ { name: "Gemini", url: "https://gemini.google.com" }, { name: "Claude", url: "https://claude.ai" }, { name: "Chatgpt", url: "https://chatgpt.com" }, { name: "Deepseek", url: "https://chat.deepseek.com" } ] }
+];
+
+const greeting = document.getElementById("greeting");
+const weatherDisplay = document.getElementById("weather");
+const weatherTemp = document.getElementById("weather-temp");
+const weatherFeelsLike = document.getElementById("weather-feels-like");
+const weatherHighLow = document.getElementById("weather-high-low");
+const locationModal = document.getElementById("locationModal");
+const locCloseButton = document.getElementById("loc-close-button");
+const locationInput = document.getElementById("locationInput");
+const saveLocationBtn = document.getElementById("saveLocationBtn");
+const useCurrentLocationBtn = document.getElementById("useCurrentLocationBtn");
+const locationError = document.getElementById("locationError");
+const groupsContainer = document.querySelector(".groups");
+const settingsIcon = document.getElementById("settings-icon");
+const settingsModal = document.getElementById("settingsModal");
+const settingsCloseButton = document.getElementById("settings-close-button");
+const settingsGroupsContainer = document.getElementById("settings-groups-container");
+const addNewGroupBtn = document.getElementById("addNewGroupBtn");
+const settingsTitle = document.getElementById("settings-title");
+const globalSettingsSection = document.getElementById("global-settings-section");
+const settingsActions = document.getElementById("settings-actions");
+const customConfirmModal = document.getElementById('customConfirmModal');
+const customConfirmMessage = document.getElementById('customConfirmMessage');
+const confirmYesBtn = document.getElementById('confirm-yes');
+const confirmNoBtn = document.getElementById('confirm-no');
+const searchForm = document.getElementById('search-form');
+const searchInput = document.getElementById('search-input');
+const searchEngineSelector = document.getElementById('search-engine-selector');
+const currentEngineIcon = document.getElementById('current-engine-icon');
+const engineList = document.getElementById('engine-list');
+
+const DEFAULT_ENGINES = [
+  { id: 'google', name: 'Google', url: 'https://www.google.com/search?q={query}', icon: 'fab fa-google' },
+  { id: 'duckduckgo', name: 'DuckDuckGo', url: 'https://duckduckgo.com/?q={query}', icon: 'fas fa-shield-alt' },
+  { id: 'baidu',      name: 'Baidu',      url: 'https://www.baidu.com/s?wd={query}',          icon: 'fas fa-paw' }
+];
+let enginesData = [];
+
+function initTheme() { const stored = localStorage.getItem('theme') || 'light'; applyTheme(stored); }
+function init() { initTheme(); loadSiteData(); loadEnginesData(); updateAllTexts(); initWeather(); updateGreeting(); renderMainPageGroups(); renderEngineDropdown(); setSearchEngine(localStorage.getItem('searchEngine') || enginesData[0]?.id || 'google'); handleFirstVisit(); }
+function loadSiteData() { const stored = localStorage.getItem('siteData'); if (stored) { try { siteData = JSON.parse(stored); } catch(e){} } }
+function saveSiteData() { localStorage.setItem('siteData', JSON.stringify(siteData)); }
+function loadEnginesData() { const stored = localStorage.getItem('enginesData'); try { enginesData = stored ? JSON.parse(stored) : JSON.parse(JSON.stringify(DEFAULT_ENGINES)); } catch(e) { enginesData = JSON.parse(JSON.stringify(DEFAULT_ENGINES)); } }
+function saveEnginesData() { localStorage.setItem('enginesData', JSON.stringify(enginesData)); }
+
+function renderMainPageGroups() {
+  groupsContainer.innerHTML = '';
+  siteData.forEach(group => {
+    const div = document.createElement('div');
+    div.className = 'group';
+    div.style.setProperty('--link-hover-color', group.color);
+    div.innerHTML = `<div class="group-title" style="color:${group.color}">${group.title}</div>`;
+    group.links.forEach(link => {
+      const a = document.createElement('a'); a.href = link.url; a.target = "_blank"; a.textContent = link.name;
+      div.appendChild(a);
+    });
+    groupsContainer.appendChild(div);
+  });
+}
+
+function updateGreeting() { const name = getUserName(); const msg = getGreetingMsg(); greeting.textContent = name ? `Hey ${name}, ${msg}` : `Hey, ${msg}`; }
+function initWeather() { const key = getApiKey(), loc = localStorage.getItem('weatherLocation'); if (!key) { weatherTemp.textContent = t('needApiKey'); weatherTemp.style.cssText = 'font-size:0.78rem; color:var(--text-light); font-weight:400;'; weatherFeelsLike.style.display = weatherHighLow.style.display = 'none'; } else if (!loc) { weatherTemp.textContent = t('clickToGetLoc'); weatherTemp.style.cssText = 'font-size:0.95rem; color:var(--text-gray); font-weight:500;'; weatherFeelsLike.style.display = weatherHighLow.style.display = 'none'; } else { weatherTemp.style.cssText = ''; fetchWeatherData(loc); } }
+async function fetchWeatherData(loc, isCoords = false) { const apiKey = getApiKey(); if (!apiKey) return; const WEATHER_CACHE_TTL = 10 * 60 * 1000; const cached = localStorage.getItem('weatherCache'), time = localStorage.getItem('weatherCacheTime'); if (cached && time && Date.now() - Number(time) < (isCoords ? 120000 : WEATHER_CACHE_TTL)) { applyWeatherData(JSON.parse(cached)); return; } try { let locId = ''; const geoUrl = isCoords ? `https://geoapi.qweather.com/v2/city/lookup?location=${loc.lon},${loc.lat}&key=${apiKey}` : `https://geoapi.qweather.com/v2/city/lookup?location=${encodeURIComponent(loc)}&key=${apiKey}`; const geoRes = await fetch(geoUrl).then(r => r.json()); if (geoRes.location?.[0]) { locId = geoRes.location[0].id; localStorage.setItem('weatherLocation', geoRes.location[0].name); } else throw new Error('Location not found'); const [curr, fore] = await Promise.all([ fetch(`https://devapi.qweather.com/v7/weather/now?location=${locId}&key=${apiKey}`).then(r => r.json()), fetch(`https://devapi.qweather.com/v7/weather/3d?location=${locId}&key=${apiKey}`).then(r => r.json()) ]); const data = { temp: Math.round(curr.now.temp), feelsLike: Math.round(curr.now.feelsLike), tempMax: fore.daily[0].tempMax, tempMin: fore.daily[0].tempMin }; applyWeatherData(data); localStorage.setItem('weatherCache', JSON.stringify(data)); localStorage.setItem('weatherCacheTime', String(Date.now())); } catch(e) { console.error(e); } }
+function applyWeatherData(data) { weatherTemp.textContent = `${data.temp}°C`; weatherFeelsLike.textContent = `${t('feelsLike')} ${data.feelsLike}°C`; weatherHighLow.textContent = `H ${data.tempMax}°C / L ${data.tempMin}°C`; weatherFeelsLike.style.display = weatherHighLow.style.display = ''; }
+
+function setSearchEngine(id) { const eng = enginesData.find(e => e.id === id) || enginesData[0]; searchInput.placeholder = t('searchWith', {name: eng.name}); currentEngineIcon.className = eng.icon; localStorage.setItem('searchEngine', eng.id); }
+function renderEngineDropdown() { engineList.innerHTML = ''; enginesData.forEach(eng => { const li = document.createElement('li'); li.innerHTML = `<i class="${eng.icon}"></i><span>${eng.name}</span>`; li.onclick = (e) => { e.stopPropagation(); setSearchEngine(eng.id); engineList.classList.remove('show'); }; engineList.appendChild(li); }); }
+
+function renderUsernameSection() { const name = getUserName(); document.getElementById('username-saved-text').textContent = name; document.getElementById('username-saved-mode').style.display = name ? 'flex' : 'none'; document.getElementById('username-edit-mode').style.display = name ? 'none' : 'flex'; }
+function renderApiKeySection() { const key = getApiKey(); if (key) { document.getElementById('api-key-saved-text').textContent = key.length > 8 ? key.substring(0, 4) + '••••••••' + key.substring(key.length - 4) : '••••••••'; document.getElementById('api-key-saved-mode').style.display = 'flex'; document.getElementById('api-key-edit-mode').style.display = 'none'; } else { document.getElementById('api-key-saved-mode').style.display = 'none'; document.getElementById('api-key-edit-mode').style.display = 'flex'; } }
+
+const TRASH_ICON_SVG = `<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 6h18"/><path d="M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6"/><path d="M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2"/></svg>`;
+const EDIT_ICON_SVG  = `<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 3a2.828 2.828 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5L17 3z"/></svg>`;
+const CHECK_ICON_SVG = `<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>`;
+document.querySelectorAll('[data-svg="edit"]').forEach(el => { el.innerHTML = EDIT_ICON_SVG; el.removeAttribute('data-svg'); });
+document.querySelectorAll('[data-svg="check"]').forEach(el => { el.innerHTML = CHECK_ICON_SVG; el.removeAttribute('data-svg'); });
+function debounce(f, d) { let t; return (...a) => { clearTimeout(t); t = setTimeout(() => f(...a), d); }; }
+function customConfirm(m) { return new Promise(res => { customConfirmMessage.textContent = m; customConfirmModal.style.display = 'flex'; confirmYesBtn.onclick = () => { customConfirmModal.style.display = 'none'; res(true); }; confirmNoBtn.onclick = () => { customConfirmModal.style.display = 'none'; res(false); }; }); }
+
+weatherDisplay.onclick = () => getApiKey() ? (locationModal.style.display = 'flex') : settingsIcon.click();
+locCloseButton.onclick = () => locationModal.style.display = 'none';
+locationModal.addEventListener('click', e => { if (e.target === locationModal) locCloseButton.onclick(); });
+saveLocationBtn.onclick = () => { localStorage.removeItem('weatherCache'); weatherTemp.textContent = t('loading'); fetchWeatherData(locationInput.value); locationModal.style.display = 'none'; };
+useCurrentLocationBtn.onclick = () => { navigator.geolocation.getCurrentPosition(p => { fetchWeatherData({ lat: p.coords.latitude, lon: p.coords.longitude }, true); locationModal.style.display = 'none'; }); };
+settingsIcon.onclick = () => { settingsModal.style.display = 'flex'; renderSettingsGroups(); };
+settingsCloseButton.onclick = () => { settingsModal.style.display = 'none'; saveSiteData(); renderMainPageGroups(); };
+settingsModal.addEventListener('click', e => { if (e.target === settingsModal) settingsCloseButton.onclick(); });
+document.getElementById('langToggleBtnSettings').onclick = () => { currentLang = currentLang === 'zh' ? 'en' : 'zh'; localStorage.setItem('lang', currentLang); updateAllTexts(); };
+document.getElementById('saveUsernameBtn').onclick = () => { localStorage.setItem('userName', document.getElementById('usernameInput').value.trim()); renderUsernameSection(); updateGreeting(); };
+document.getElementById('editUsernameBtn').onclick = () => { document.getElementById('username-saved-mode').style.display = 'none'; document.getElementById('username-edit-mode').style.display = 'flex'; };
+document.getElementById('saveApiKeyBtn').onclick = () => { localStorage.setItem('qweatherApiKey', document.getElementById('apiKeyInput').value.trim()); localStorage.removeItem('weatherCache'); initWeather(); renderApiKeySection(); };
+document.getElementById('editApiKeyBtn').onclick = () => { document.getElementById('api-key-saved-mode').style.display = 'none'; document.getElementById('api-key-edit-mode').style.display = 'flex'; };
+
+searchEngineSelector.onclick = e => { e.stopPropagation(); engineList.classList.toggle('show'); };
+document.onclick = () => engineList.classList.remove('show');
+searchForm.onsubmit = e => { e.preventDefault(); const q = searchInput.value.trim(); if (!q) return; const isUrl = /^https?:\/\//i.test(q) || /^(localhost|127\.0\.0\.1)(:\d+)?(\/.*)?$/i.test(q) || /^[^\s]+\.[a-z]{2,}([:\/?#].*)?$/i.test(q); if (isUrl) { window.open(/^https?:\/\//i.test(q) ? q : 'https://' + q, '_blank'); } else { const eng = enginesData.find(e => e.id === (localStorage.getItem('searchEngine') || enginesData[0].id)); window.open(eng.url.replace('{query}', encodeURIComponent(q)), '_blank'); } };
+
+addNewGroupBtn.addEventListener('click', () => { const n = prompt(t('newGroupNamePrompt')); if (n && n.trim()) { siteData.push({ title: n.trim(), color: '#ffa726', links: [] }); renderSettingsGroups(); renderMainPageGroups(); setTimeout(() => settingsGroupsContainer.scrollTop = settingsGroupsContainer.scrollHeight, 100); } });
+document.getElementById('editEnginesBtn').addEventListener('click', editEngines);
+
+function editEngines() {
+  settingsTitle.textContent = t('customEngine'); settingsActions.style.display = 'none'; globalSettingsSection.style.display = 'none'; document.getElementById('langToggleBtnSettings').style.display = 'none';
+  const renderEngineList = () => {
+    settingsGroupsContainer.innerHTML = '';
+    enginesData.forEach((eng, idx) => {
+      const d = document.createElement('div'); d.className = 'setting-item group-item';
+      d.innerHTML = `<i class="fas fa-bars handle"></i><i class="${eng.icon}" style="color:var(--text-light); font-size:0.95rem; width:20px; text-align:center; flex-shrink:0;"></i><span style="flex:1; font-size:0.9rem; color:var(--text-color); overflow:hidden; text-overflow:ellipsis; white-space:nowrap;">${eng.name}</span><button class="btn btn-icon edit-eng-btn">${EDIT_ICON_SVG}</button><button class="btn btn-icon btn-danger del-eng-btn">${TRASH_ICON_SVG}</button>`;
+      settingsGroupsContainer.appendChild(d);
+      d.querySelector('.edit-eng-btn').addEventListener('click', () => editSingleEngine(idx, renderEngineList));
+      d.querySelector('.del-eng-btn').addEventListener('click', async () => { if (enginesData.length <= 1) { alert(t('keepOneEngine')); return; } if (await customConfirm(t('delEngineConfirm', {name: eng.name}))) { enginesData.splice(idx, 1); saveEnginesData(); renderEngineDropdown(); if (localStorage.getItem('searchEngine') === eng.id) setSearchEngine(enginesData[0].id); renderEngineList(); } });
+    });
+    const actions = document.createElement('div'); actions.style.cssText = 'display:flex; flex-direction:column; gap:10px; margin-top:15px; margin-bottom:10px;';
+    actions.innerHTML = `<button id="addEngBtn" class="btn btn-primary"><i class="fas fa-plus"></i> ${t('customEngine')}</button><button id="backFromEng" class="btn btn-secondary">${t('back')}</button>`;
+    settingsGroupsContainer.appendChild(actions);
+    document.getElementById('addEngBtn').onclick = () => { const newId = 'custom_' + Date.now(); enginesData.push({ id: newId, name: 'New Engine', url: 'https://example.com/search?q={query}', icon: 'fas fa-search' }); saveEnginesData(); renderEngineDropdown(); renderEngineList(); setTimeout(() => editSingleEngine(enginesData.length - 1, renderEngineList), 50); };
+    document.getElementById('backFromEng').onclick = () => { saveEnginesData(); renderEngineDropdown(); setSearchEngine(localStorage.getItem('searchEngine') || enginesData[0]?.id); renderSettingsGroups(); };
+    if (sortableInst) sortableInst.destroy();
+    sortableInst = new Sortable(settingsGroupsContainer, { 
+      handle: '.handle', animation: 150, 
+      forceFallback: true,
+      fallbackClass: 'sortable-fallback',
+      ghostClass: 'sortable-ghost',
+      chosenClass: 'sortable-chosen',
+      filter: '#addEngBtn, #backFromEng', 
+      onEnd: e => { const item = enginesData.splice(e.oldIndex, 1)[0]; enginesData.splice(e.newIndex, 0, item); saveEnginesData(); renderEngineDropdown(); }
+    });
+  };
+  renderEngineList();
+}
+
+function editSingleEngine(idx, onBack) {
+  const eng = enginesData[idx]; settingsTitle.textContent = t('editEngine', {name: eng.name}); document.getElementById('langToggleBtnSettings').style.display = 'none';
+  settingsGroupsContainer.innerHTML = `<div style="display:flex; flex-direction:column; gap:22px; padding:8px 0;"><div style="display:flex; flex-direction:column; gap:10px;"><label style="font-size:0.8rem; color:var(--text-light); padding-left:4px;">${t('engineName')}</label><input type="text" class="setting-input standalone-input" id="engEditName" value="${eng.name}" style="width:100%;"></div><div style="display:flex; flex-direction:column; gap:10px;"><label style="font-size:0.8rem; color:var(--text-light); padding-left:4px;">${t('engineUrl')}</label><input type="text" class="setting-input standalone-input" id="engEditUrl" value="${eng.url}" style="width:100%;"></div></div><div style="display:flex; flex-direction:column; gap:10px; margin-top:22px;"><button id="saveEngBtn" class="btn btn-primary">${CHECK_ICON_SVG} ${t('save')}</button><button id="backFromSingleEng" class="btn btn-secondary">${t('back')}</button></div>`;
+  document.getElementById('saveEngBtn').onclick = () => {
+    const name = document.getElementById('engEditName').value.trim(); let url  = document.getElementById('engEditUrl').value.trim(); if (!name || !url) { alert(t('engineNameUrlEmpty')); return; }
+    if (!url.includes('{query}')) { let domain = url.replace(/^https?:\/\//, '').replace(/^www\./, '').split('/')[0].toLowerCase(); const k = { 'google': 'https://www.google.com/search?q={query}', 'baidu': 'https://www.baidu.com/s?wd={query}', 'bing': 'https://www.bing.com/search?q={query}', 'duckduckgo': 'https://duckduckgo.com/?q={query}', 'yahoo': 'https://search.yahoo.com/search?p={query}', 'yandex': 'https://yandex.com/search/?text={query}', 'bilibili': 'https://search.bilibili.com/all?keyword={query}', 'github': 'https://github.com/search?q={query}', 'zhihu': 'https://www.zhihu.com/search?q={query}' }; let m = false; for (let key in k) { if (domain.includes(key)) { url = k[key]; m = true; break; } } if (!m) { let p = url.startsWith('http') ? '' : 'https://'; url = `${p}${url}/search?q={query}`; } }
+    let i = 'fas fa-search'; const s = (name + ' ' + url).toLowerCase(); if (s.includes('google')) i = 'fab fa-google'; else if (s.includes('baidu')) i = 'fas fa-paw'; else if (s.includes('bing')) i = 'fab fa-microsoft'; else if (s.includes('duckduckgo')) i = 'fas fa-shield-alt';
+    enginesData[idx] = { ...eng, name, url, icon: i }; saveEnginesData(); renderEngineDropdown(); if (localStorage.getItem('searchEngine') === eng.id) setSearchEngine(eng.id); onBack();
+  };
+  document.getElementById('backFromSingleEng').onclick = onBack;
+}
+
+let sortableInst = null;
+function renderSettingsGroups() {
+  settingsTitle.textContent = t('settings'); globalSettingsSection.style.display = "flex"; settingsActions.style.display = "block"; document.getElementById('langToggleBtnSettings').style.display = 'flex';
+  settingsGroupsContainer.innerHTML = '';
+  siteData.forEach((g, i) => {
+    const div = document.createElement('div'); div.className = 'setting-item group-item';
+    div.innerHTML = `<i class="fas fa-bars handle"></i><input type="text" class="setting-input" value="${g.title}" style="padding-left:0 !important;"><button class="btn btn-icon edit-btn">${EDIT_ICON_SVG}</button><button class="btn btn-icon btn-danger del-btn">${TRASH_ICON_SVG}</button>`;
+    div.querySelector('input').oninput = debounce(e => { siteData[i].title = e.target.value; }, 300);
+    div.querySelector('.edit-btn').onclick = () => editGroup(i);
+    div.querySelector('.del-btn').onclick = async () => { if (await customConfirm(t('delGroupConfirm'))) { siteData.splice(i, 1); renderSettingsGroups(); } };
+    settingsGroupsContainer.appendChild(div);
+  });
+  if (sortableInst) sortableInst.destroy();
+  sortableInst = new Sortable(settingsGroupsContainer, { 
+    handle: '.handle', animation: 150, 
+    forceFallback: true, 
+    fallbackClass: 'sortable-fallback',
+    ghostClass: 'sortable-ghost',
+    chosenClass: 'sortable-chosen',
+    onEnd: e => { const item = siteData.splice(e.oldIndex, 1)[0]; siteData.splice(e.newIndex, 0, item); } 
+  });
+}
+
+function editGroup(idx) {
+  const g = siteData[idx]; settingsTitle.innerHTML = `<i class="fas fa-folder-open" style="color:${g.color}; margin-right:8px;"></i>${g.title}`; globalSettingsSection.style.display = "none"; settingsActions.style.display = "none"; document.getElementById('langToggleBtnSettings').style.display = 'none';
+  settingsGroupsContainer.innerHTML = `<div id="l-list" style="display:flex; flex-direction:column; gap:14px;"></div><div style="display:flex; flex-direction:column; gap:10px; margin-top:15px;"><button id="addL" class="btn btn-primary"><i class="fas fa-plus"></i> ${t('addNewLink')}</button><button id="backG" class="btn btn-secondary">${t('back')}</button></div>`;
+  const list = document.getElementById('l-list');
+  const render = () => {
+    list.innerHTML = '';
+    g.links.forEach((l, li) => {
+      const d = document.createElement('div'); d.className = 'setting-item link-item';
+      d.innerHTML = `<i class="fas fa-bars handle"></i><input type="text" class="setting-input" value="${l.name}" placeholder="${t('linkNamePlaceholder')}" style="flex:0.22;"><div class="link-divider"></div><input type="text" class="setting-input" value="${l.url}" placeholder="URL" style="flex:0.78;"><button class="btn btn-icon btn-danger">${TRASH_ICON_SVG}</button>`;
+      d.querySelectorAll('input')[0].oninput = e => g.links[li].name = e.target.value;
+      d.querySelectorAll('input')[1].oninput = e => g.links[li].url = e.target.value;
+      d.querySelector('button').onclick = async () => { if (await customConfirm(t('delLinkConfirm'))) { g.links.splice(li, 1); render(); } };
+      list.appendChild(d);
+    });
+    if (sortableInst) sortableInst.destroy();
+    sortableInst = new Sortable(list, {
+      handle: '.handle', animation: 150,
+      forceFallback: true,
+      fallbackClass: 'sortable-fallback',
+      ghostClass: 'sortable-ghost',
+      chosenClass: 'sortable-chosen',
+      onEnd: e => { const item = g.links.splice(e.oldIndex, 1)[0]; g.links.splice(e.newIndex, 0, item); }
+    });
+  };
+  render();
+  document.getElementById('addL').onclick = () => { g.links.push({name:'', url:''}); render(); };
+  document.getElementById('backG').onclick = renderSettingsGroups;
+}
+
+function handleFirstVisit() {
+  if (!localStorage.getItem('hasVisited')) {
+    const ov = document.getElementById('welcome-overlay'), inp = document.getElementById('welcome-name-input');
+    const welcomeGreetingContainer = document.getElementById('welcome-greeting-container');
+    ov.style.display = 'flex'; setTimeout(() => inp.focus(), 100);
+    inp.onkeydown = e => {
+      if (e.key === 'Enter') {
+        const val = inp.value.trim(); localStorage.setItem('userName', val); localStorage.setItem('hasVisited', 'true');
+        updateGreeting(); renderUsernameSection();
+        document.getElementById('welcome-input-container').style.opacity = '0'; document.getElementById('welcome-input-container').style.transform = 'translateY(-30px)';
+        setTimeout(() => {
+          document.getElementById('welcome-input-container').style.display = 'none'; const msg = getGreetingMsg(); document.getElementById('welcome-greeting-text').textContent = val ? `Hey ${val}, ${msg}` : `Hey, ${msg}`;
+          welcomeGreetingContainer.style.opacity = '1'; welcomeGreetingContainer.style.transform = 'translateY(0)';
+          setTimeout(() => { welcomeGreetingContainer.style.opacity = '0'; welcomeGreetingContainer.style.transform = 'translateY(-30px)'; setTimeout(() => { ov.style.opacity = '0'; document.documentElement.classList.add('do-reveal'); document.documentElement.classList.remove('is-first-visit'); setTimeout(() => { ov.style.display = 'none'; setTimeout(() => { document.documentElement.classList.remove('do-reveal'); }, 1500); }, 800); }, 400); }, 1500);
+        }, 500);
+      }
+    };
+  }
+}
+init();
+  </script>
+</body>
+</html>

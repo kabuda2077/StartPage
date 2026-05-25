@@ -61,7 +61,13 @@ jobs:
             -x "README.md" \
             -x "CHANGELOG.md" \
             -x "release_notes.md" \
+            -x "startpage.html" \
+            -x "build.sh" \
             -x "*.zip"
+
+      - name: Build single-file HTML
+        if: steps.check.outputs.exists == 'false'
+        run: bash build.sh
 
       - name: Create Release
         if: steps.check.outputs.exists == 'false'
@@ -70,4 +76,6 @@ jobs:
           tag_name: ${{ steps.version.outputs.version }}
           name: ${{ steps.version.outputs.version }}
           body_path: release_notes.md
-          files: StartPage-${{ steps.version.outputs.version }}.zip
+          files: |
+            StartPage-${{ steps.version.outputs.version }}.zip
+            startpage.html
