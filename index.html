@@ -5,17 +5,12 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Start Page</title>
   
-  <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.7.2/css/all.min.css">
-  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/qweather-icons@1.7.0/font/qweather-icons.css">
-  
   <link rel="stylesheet" href="style.css">
   
-  <script src="sortable.min.js" defer></script>
   <script src="script.js" defer></script>
 </head>
 <body>
-  <div id="welcome-overlay" style="display: none;">
+  <div id="welcome-overlay">
     <div id="welcome-input-container">
       <div id="welcome-prompt">choose a name for you</div>
       <input type="text" id="welcome-name-input" placeholder="Press Enter to confirm" autocomplete="off" />
@@ -40,7 +35,7 @@
     <form id="search-form">
       <div class="search-container">
         <div id="search-engine-selector" class="search-engine-selector">
-          <i id="current-engine-icon" class="fab fa-google"></i>
+          <span id="current-engine-icon" class="ui-icon engine-brand-icon"></span>
           <ul id="engine-list" class="engine-list"></ul>
         </div>
         <input id="search-input" type="text" name="q" placeholder="Search something..." autofocus autocomplete="off" />
@@ -50,92 +45,96 @@
 
   <div class="groups reveal-target" style="--delay: 4;"></div>
 
-  <div id="locationModal" class="modal">
+  <div id="locationModal" class="modal" role="dialog" aria-modal="true" aria-labelledby="loc-modal-title" tabindex="-1">
     <div class="modal-content">
       <div class="modal-header">
         <h2 id="loc-modal-title">输入您的位置</h2>
         <div class="header-actions">
-          <button class="header-btn close-btn" id="loc-close-button">&times;</button>
+          <button class="header-btn close-btn" id="loc-close-button" aria-label="Close">&times;</button>
         </div>
       </div>
-      <input type="text" id="locationInput" class="standalone-input" style="width:100%; margin-bottom:15px;" />
-      <div style="display:flex; flex-direction:column; gap:10px; margin-bottom:8px;">
+      <div class="location-field">
+        <input type="text" id="locationInput" class="standalone-input location-input" autocomplete="off" aria-autocomplete="list" aria-controls="locationSuggestions" aria-expanded="false" />
+        <div id="locationSuggestions" class="location-suggestions" role="listbox"></div>
+      </div>
+      <div id="locationSelectionPreview" class="location-selection" hidden></div>
+      <div class="location-actions">
         <button id="saveLocationBtn" class="btn btn-primary">保存位置</button>
         <button id="useCurrentLocationBtn" class="btn btn-secondary">使用当前位置</button>
       </div>
-      <p id="locationError" style="color:#e63946; font-size:0.8rem; margin-top:10px; text-align:center;"></p>
+      <p id="locationError" class="location-error"></p>
     </div>
   </div>
 
   <div id="floating-controls" class="reveal-target" style="--delay: 5;">
     <div id="theme-toggle-icon" class="floating-btn" title="Toggle Dark Mode"></div>
     <div id="settings-icon" class="floating-btn" title="Settings">
-      <i class="fas fa-cog"></i>
+      <span class="ui-icon" data-icon="cog"></span>
     </div>
   </div>
 
-  <div id="settingsModal" class="modal">
-    <div class="modal-content" style="max-width: 550px;">
+  <div id="settingsModal" class="modal" role="dialog" aria-modal="true" aria-labelledby="settings-title" tabindex="-1">
+    <div class="modal-content modal-content-settings">
       <div class="modal-header">
         <h2 id="settings-title">设置</h2>
         <div class="header-actions">
           <button class="header-btn lang-btn" id="langToggleBtnSettings">EN</button>
-          <button class="header-btn close-btn" id="settings-close-button">&times;</button>
+          <button class="header-btn close-btn" id="settings-close-button" aria-label="Close">&times;</button>
         </div>
       </div>
       <div id="settings-groups-container"></div>
       
-      <div id="settings-actions" style="margin-top:15px; margin-bottom:15px;">
-        <button id="addNewGroupBtn" class="btn btn-primary" style="width:100%;">
-          <i class="fas fa-plus"></i> <span id="addNewGroupBtnText">添加新分组</span>
+      <div id="settings-actions" class="settings-actions-section">
+        <button id="addNewGroupBtn" class="btn btn-primary full-width">
+          <span class="ui-icon" data-icon="plus"></span> <span id="addNewGroupBtnText">添加新分组</span>
         </button>
       </div>
       
-      <div id="global-settings-section" style="border-top:1px solid var(--card-border); padding-top:15px; display:flex; flex-direction:column; gap:14px;">
-        <button id="editEnginesBtn" class="btn btn-accent" style="width:100%;">
-          <i class="fas fa-search"></i> <span id="editEnginesBtnText">自定义搜索引擎</span>
+      <div id="global-settings-section" class="settings-section">
+        <button id="editEnginesBtn" class="btn btn-accent full-width">
+          <span class="ui-icon" data-icon="search"></span> <span id="editEnginesBtnText">自定义搜索引擎</span>
         </button>
 
         <div id="username-section">
-          <div class="setting-item" id="username-saved-mode" style="justify-content:space-between; display:none;">
-            <div style="display:flex; align-items:center; gap:12px;">
-              <i class="fas fa-user setting-icon"></i>
-              <span id="username-saved-text" style="font-size:0.95rem; color:var(--text-gray);"></span>
+          <div class="setting-item setting-saved-row" id="username-saved-mode">
+            <div class="setting-label-row">
+              <span class="ui-icon setting-icon" data-icon="user"></span>
+              <span id="username-saved-text" class="setting-saved-text"></span>
             </div>
             <button class="btn btn-icon" id="editUsernameBtn" title="编辑用户名" data-svg="edit"></button>
           </div>
           <div class="setting-item edit-height" id="username-edit-mode">
-            <i class="fas fa-user setting-icon"></i>
+            <span class="ui-icon setting-icon" data-icon="user"></span>
             <input type="text" class="setting-input" id="usernameInput" placeholder="输入您的名字" autocomplete="off">
             <button class="btn btn-icon btn-success" id="saveUsernameBtn" data-svg="check"></button>
           </div>
         </div>
 
         <div id="api-key-section">
-          <div class="setting-item" id="api-key-saved-mode" style="justify-content:space-between; display:none;">
-            <div style="display:flex; align-items:center; gap:12px;">
-              <i class="fas fa-key setting-icon"></i>
-              <span id="api-key-saved-text" style="font-size:0.95rem; color:var(--text-gray);"></span>
+          <div class="setting-item setting-saved-row" id="api-key-saved-mode">
+            <div class="setting-label-row">
+              <span class="ui-icon setting-icon" data-icon="key"></span>
+              <span id="api-key-saved-text" class="setting-saved-text"></span>
             </div>
             <button class="btn btn-icon" id="editApiKeyBtn" title="编辑 Key" data-svg="edit"></button>
           </div>
           <div class="setting-item edit-height" id="api-key-edit-mode">
-            <i class="fas fa-key setting-icon"></i>
+            <span class="ui-icon setting-icon" data-icon="key"></span>
             <input type="text" class="setting-input" id="apiKeyInput" autocomplete="off">
             <button class="btn btn-icon btn-success" id="saveApiKeyBtn" data-svg="check"></button>
           </div>
-          <p id="applyApiKeyText" style="font-size:0.72rem; color:var(--text-extra-light); margin:8px 4px 0 4px;"></p>
+          <p id="applyApiKeyText" class="api-key-help"></p>
         </div>
       </div>
     </div>
   </div>
 
-  <div id="customConfirmModal" class="modal">
-      <div class="modal-content" style="max-width:320px; text-align:center; padding: 30px;">
-          <p id="customConfirmMessage" style="font-size:1.1rem; margin-bottom:25px;"></p>
-          <div style="display:flex; gap:15px; justify-content:center;">
-              <button class="btn btn-primary" style="background-color:#e63946; flex:1;" id="confirm-yes">是</button>
-              <button class="btn btn-secondary" style="flex:1;" id="confirm-no">否</button>
+  <div id="customConfirmModal" class="modal" role="dialog" aria-modal="true" aria-labelledby="customConfirmMessage" tabindex="-1">
+      <div class="modal-content modal-content-confirm">
+          <p id="customConfirmMessage" class="confirm-message"></p>
+          <div class="confirm-actions">
+              <button class="btn btn-confirm-danger" id="confirm-yes">是</button>
+              <button class="btn btn-secondary" id="confirm-no">否</button>
           </div>
       </div>
   </div>
