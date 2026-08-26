@@ -1,7 +1,3 @@
-if (!localStorage.getItem('hasVisited')) {
-  document.documentElement.classList.add('is-first-visit');
-}
-
 const i18n = {
   zh: {
     settings: "设置", inputLocation: "输入您的位置", locPlaceholder: "输入城市并选择匹配位置", saveLoc: "保存位置", useCurLoc: "使用当前位置",
@@ -10,17 +6,15 @@ const i18n = {
     searchPlaceholder: "Search something...", searchWith: "Search with {name}", delGroupConfirm: "确认删除该分组及内部所有链接吗?",
     delLinkConfirm: "确认删除该链接吗?", delEngineConfirm: "确认删除\"{name}\"?", editEngine: "编辑：{name}", engineName: "名称",
     engineNamePlaceholder: "如: Google", engineUrl: "搜索网址 （只需输入如 baidu.com 即可）", engineUrlPlaceholder: "例如: baidu.com",
-    save: "保存", back: "返回", addNewLink: "添加新链接", noLinks: "该分组下暂无链接", linkNamePlaceholder: "网站名称",
+    save: "保存", back: "返回", addNewLink: "添加新链接", linkNamePlaceholder: "网站名称",
     newGroupNamePrompt: "请输入新分组名称:", engineNameUrlEmpty: "名称和网址不能为空", keepOneEngine: "至少保留一个搜索引擎",
-    yes: "是", no: "否", needApiKey: "天气服务需要自行申请API Key，点击右下角齿轮进行设置", clickToGetLoc: "点击获取位置",
+    yes: "是", no: "否", ok: "确定", cancel: "取消", exportConfig: "导出配置", importConfig: "导入配置", importSuccess: "配置导入成功", importFailed: "配置文件无效", importConfirm: "导入将覆盖当前配置，继续吗？", needApiKey: "天气服务需要自行申请API Key，点击右下角齿轮进行设置", clickToGetLoc: "点击获取位置",
     loading: "加载中...", locNotSupported: "您的浏览器不支持地理定位。", gettingLoc: "正在获取当前位置...",
     locFailed: "定位失败，请手动输入城市或检查权限。", weatherFailed: "天气获取失败，点击重试",
-    weatherLocationMissing: "未找到该城市", weatherApiFailed: "天气服务返回异常", locationSearching: "搜索位置中...",
-    locationNoMatches: "没有匹配位置", locationSearchFailed: "位置搜索失败，请稍后重试", locationSelected: "已选择：{location}",
+    weatherLocationMissing: "未找到该城市", weatherApiFailed: "天气服务返回异常", locationSearchFailed: "位置搜索失败，请稍后重试", locationSelected: "已选择：{location}",
     locationDetected: "识别到：{location}", confirmLocation: "确认位置", selectLocationFirst: "请先从下拉列表选择一个位置",
-    feelsLike: "FL", groupNamePlaceholder: "分组名称",
-    editLinksTitle: "编辑链接", delGroupTitle: "删除分组", dragSortTitle: "拖动排序", delLinkTitle: "删除链接",
-    editBtnTitle: "编辑", delBtnTitle: "删除", usernamePlaceholder: "输入您的名字", welcomePrompt: "choose a name for you", welcomePlaceholder: "Press Enter to confirm"
+    feelsLike: "体感", groupNamePlaceholder: "分组名称", dragSortTitle: "拖动排序", delLinkTitle: "删除链接",
+    editBtnTitle: "编辑", delGroupTitle: "删除分组", usernamePlaceholder: "输入您的名字", welcomeSkip: "跳过"
   },
   en: {
     settings: "Settings", inputLocation: "Enter your location", locPlaceholder: "Type a city and choose a match", saveLoc: "Save Location", useCurLoc: "Use Current Location",
@@ -29,17 +23,15 @@ const i18n = {
     searchPlaceholder: "Search something...", searchWith: "Search with {name}", delGroupConfirm: "Delete this group and all its links?",
     delLinkConfirm: "Delete this link?", delEngineConfirm: "Delete \"{name}\"?", editEngine: "Edit: {name}", engineName: "Name",
     engineNamePlaceholder: "e.g., Google", engineUrl: "Search URL (e.g., just enter google.com)", engineUrlPlaceholder: "e.g., google.com",
-    save: "Save", back: "Back", addNewLink: "Add New Link", noLinks: "No links in this group", linkNamePlaceholder: "Site Name",
+    save: "Save", back: "Back", addNewLink: "Add New Link", linkNamePlaceholder: "Site Name",
     newGroupNamePrompt: "Enter new group name:", engineNameUrlEmpty: "Name and URL cannot be empty", keepOneEngine: "Keep at least one search engine",
-    yes: "Yes", no: "No", needApiKey: "API Key is required for weather. Click the gear icon to set it.", clickToGetLoc: "Click to get location",
+    yes: "Yes", no: "No", ok: "OK", cancel: "Cancel", exportConfig: "Export Config", importConfig: "Import Config", importSuccess: "Configuration imported", importFailed: "Invalid configuration file", importConfirm: "Importing will replace your current configuration. Continue?", needApiKey: "API Key is required for weather. Click the gear icon to set it.", clickToGetLoc: "Click to get location",
     loading: "Loading...", locNotSupported: "Geolocation is not supported by your browser.", gettingLoc: "Getting current location...",
     locFailed: "Location failed. Please enter manually or check permissions.", weatherFailed: "Weather failed. Click to retry",
-    weatherLocationMissing: "Location not found", weatherApiFailed: "Weather service error", locationSearching: "Searching locations...",
-    locationNoMatches: "No matching locations", locationSearchFailed: "Location search failed. Please try again.", locationSelected: "Selected: {location}",
+    weatherLocationMissing: "Location not found", weatherApiFailed: "Weather service error", locationSearchFailed: "Location search failed. Please try again.", locationSelected: "Selected: {location}",
     locationDetected: "Detected: {location}", confirmLocation: "Confirm Location", selectLocationFirst: "Please choose a location from the list first",
-    feelsLike: "FL", groupNamePlaceholder: "Group Name",
-    editLinksTitle: "Edit Links", delGroupTitle: "Delete Group", dragSortTitle: "Drag to sort", delLinkTitle: "Delete Link",
-    editBtnTitle: "Edit", delBtnTitle: "Delete", usernamePlaceholder: "Enter your name", welcomePrompt: "choose a name for you", welcomePlaceholder: "Press Enter to confirm"
+    feelsLike: "Feels", groupNamePlaceholder: "Group Name", dragSortTitle: "Drag to sort", delLinkTitle: "Delete Link",
+    editBtnTitle: "Edit", delGroupTitle: "Delete Group", usernamePlaceholder: "Enter your name", welcomeSkip: "Skip"
   }
 };
 
@@ -47,18 +39,18 @@ let currentLang = localStorage.getItem('lang') || 'zh';
 const reducedMotionQuery = window.matchMedia('(prefers-reduced-motion: reduce)');
 function t(key, params) {
   let text = i18n[currentLang][key] || key;
-  if (params) for (let k in params) text = text.replace(`{${k}}`, params[k]);
+  if (params) for (let k in params) text = text.replaceAll(`{${k}}`, params[k]);
   return text;
 }
 
 function getGreetingMsg() {
   const hour = new Date().getHours();
-  let greetings = [];
-  if (hour >= 0 && hour < 5) greetings = ["up late, night owl?", "it's late, get some rest.", "still awake?"];
-  else if (hour >= 5 && hour < 9) greetings = ["early bird!", "good morning, early riser!", "ready for a new day?"];
-  else if (hour >= 9 && hour < 12) greetings = ["good morning!", "have a great morning!", "rise and shine!"];
-  else if (hour >= 12 && hour < 18) greetings = ["good afternoon!", "hope your day is going well!", "stay focused!"];
-  else if (hour >= 18 && hour < 22) greetings = ["good evening!", "time to wind down.", "hope you had a great day!"];
+  let greetings;
+  if (hour < 5) greetings = ["up late, night owl?", "it's late, get some rest.", "still awake?"];
+  else if (hour < 9) greetings = ["early bird!", "good morning, early riser!", "ready for a new day?"];
+  else if (hour < 12) greetings = ["good morning!", "have a great morning!", "rise and shine!"];
+  else if (hour < 18) greetings = ["good afternoon!", "hope your day is going well!", "stay focused!"];
+  else if (hour < 22) greetings = ["good evening!", "time to wind down.", "hope you had a great day!"];
   else greetings = ["good night!", "late night browsing?", "time to rest soon."];
   return greetings[Math.floor(Math.random() * greetings.length)];
 }
@@ -206,19 +198,16 @@ function hydrateStaticIcons() {
 const themeToggleBtn = document.getElementById('theme-toggle-icon');
 
 function applyTheme(theme) {
-  if (theme === 'dark') {
-    document.body.classList.add('dark-mode');
-    themeToggleBtn.replaceChildren(createIcon('sun'));
-  } else {
-    document.body.classList.remove('dark-mode');
-    themeToggleBtn.replaceChildren(createIcon('moon'));
-  }
+  const isDark = theme === 'dark';
+  document.body.classList.toggle('dark-mode', isDark);
+  document.documentElement.classList.toggle('dark-mode', isDark);
+  themeToggleBtn.replaceChildren(createIcon(isDark ? 'sun' : 'moon'));
 }
 
 themeToggleBtn.addEventListener('click', (e) => {
   const isDark = document.body.classList.contains('dark-mode');
   const newTheme = isDark ? 'light' : 'dark';
-  const x = e.clientX; const y = e.clientY;
+  const x = e.clientX || window.innerWidth / 2; const y = e.clientY || window.innerHeight / 2;
   document.documentElement.style.setProperty('--click-x', `${x}px`);
   document.documentElement.style.setProperty('--click-y', `${y}px`);
   if (reducedMotionQuery.matches || !document.startViewTransition) { localStorage.setItem('theme', newTheme); applyTheme(newTheme); return; }
@@ -229,7 +218,11 @@ themeToggleBtn.addEventListener('click', (e) => {
 });
 
 function updateAllTexts() {
+  if (currentLang !== 'zh' && currentLang !== 'en') currentLang = 'zh';
+  document.documentElement.lang = currentLang === 'zh' ? 'zh-CN' : 'en';
   document.getElementById('langToggleBtnSettings').textContent = currentLang === 'zh' ? 'EN' : '中';
+  document.getElementById('search-input').placeholder = t('searchPlaceholder');
+  updateGreeting();
   document.getElementById('loc-modal-title').textContent = t('inputLocation');
   document.getElementById('locationInput').placeholder = t('locPlaceholder');
   document.getElementById('saveLocationBtn').textContent = t('saveLoc');
@@ -242,6 +235,13 @@ function updateAllTexts() {
   document.getElementById('applyApiKeyText').innerHTML = t('applyApiKey');
   document.getElementById('confirm-yes').textContent = t('yes');
   document.getElementById('confirm-no').textContent = t('no');
+  customInputYes.textContent = t('ok');
+  customInputNo.textContent = t('cancel');
+  customNoticeClose.textContent = t('ok');
+  exportConfigBtn.textContent = t('exportConfig');
+  importConfigBtn.textContent = t('importConfig');
+  searchEngineSelector.setAttribute('aria-label', t('customEngine'));
+  settingsIcon.setAttribute('aria-label', t('settings'));
   renderUsernameSection();
   renderApiKeySection();
 }
@@ -259,6 +259,7 @@ let siteData = [
 const greeting = document.getElementById("greeting");
 const weatherDisplay = document.getElementById("weather");
 const weatherTemp = document.getElementById("weather-temp");
+const weatherCondition = document.getElementById("weather-condition");
 const weatherFeelsLike = document.getElementById("weather-feels-like");
 const weatherHighLow = document.getElementById("weather-high-low");
 const locationModal = document.getElementById("locationModal");
@@ -280,6 +281,14 @@ const globalSettingsSection = document.getElementById("global-settings-section")
 const settingsActions = document.getElementById("settings-actions");
 const customConfirmModal = document.getElementById('customConfirmModal');
 const customConfirmMessage = document.getElementById('customConfirmMessage');
+const customInputModal = document.getElementById('customInputModal');
+const customInputTitle = document.getElementById('customInputTitle');
+const customInputValue = document.getElementById('customInputValue');
+const customInputYes = document.getElementById('customInputYes');
+const customInputNo = document.getElementById('customInputNo');
+const customNoticeModal = document.getElementById('customNoticeModal');
+const customNoticeMessage = document.getElementById('customNoticeMessage');
+const customNoticeClose = document.getElementById('customNoticeClose');
 const confirmYesBtn = document.getElementById('confirm-yes');
 const confirmNoBtn = document.getElementById('confirm-no');
 const searchForm = document.getElementById('search-form');
@@ -287,6 +296,9 @@ const searchInput = document.getElementById('search-input');
 const searchEngineSelector = document.getElementById('search-engine-selector');
 const currentEngineIcon = document.getElementById('current-engine-icon');
 const engineList = document.getElementById('engine-list');
+const exportConfigBtn = document.getElementById('exportConfigBtn');
+const importConfigBtn = document.getElementById('importConfigBtn');
+const importConfigInput = document.getElementById('importConfigInput');
 
 const DEFAULT_ENGINES = ['google', 'duckduckgo', 'baidu'].map(key => engineFromPreset(ENGINE_PRESETS.find(preset => preset.key === key)));
 let enginesData = [];
@@ -311,11 +323,35 @@ function init() {
   handleFirstVisit();
   scheduleIdleTask(() => initWeather());
 }
-function loadSiteData() { const stored = localStorage.getItem('siteData'); if (stored) { try { siteData = JSON.parse(stored); } catch(e){} } }
+function loadSiteData() {
+  const stored = localStorage.getItem('siteData');
+  try {
+    const parsed = stored ? JSON.parse(stored) : null;
+    if (!Array.isArray(parsed)) return;
+    siteData = parsed.map(group => ({
+      title: String(group?.title || 'group'),
+      color: /^#[0-9a-f]{6}$/i.test(group?.color) ? group.color : '#ffa726',
+      links: Array.isArray(group?.links) ? group.links.map(link => ({ name: String(link?.name || ''), url: String(link?.url || '') })) : []
+    }));
+  } catch (e) { localStorage.removeItem('siteData'); }
+}
 function saveSiteData() { localStorage.setItem('siteData', JSON.stringify(siteData)); }
-function loadEnginesData() { const stored = localStorage.getItem('enginesData'); try { enginesData = stored ? JSON.parse(stored) : JSON.parse(JSON.stringify(DEFAULT_ENGINES)); } catch(e) { enginesData = JSON.parse(JSON.stringify(DEFAULT_ENGINES)); } }
+function loadEnginesData() {
+  const stored = localStorage.getItem('enginesData');
+  try {
+    const parsed = stored ? JSON.parse(stored) : null;
+    enginesData = Array.isArray(parsed) ? parsed.filter(e => e && e.id && e.name && e.url) : JSON.parse(JSON.stringify(DEFAULT_ENGINES));
+  } catch (e) { enginesData = JSON.parse(JSON.stringify(DEFAULT_ENGINES)); }
+  if (!enginesData.length) enginesData = JSON.parse(JSON.stringify(DEFAULT_ENGINES));
+}
 function saveEnginesData() { localStorage.setItem('enginesData', JSON.stringify(enginesData)); }
 
+function normalizeLinkUrl(value) {
+  const url = String(value || '').trim();
+  if (!url) return '';
+  if (!/^https?:\/\//i.test(url)) return `https://${url}`;
+  try { return new URL(url).href; } catch (error) { return ''; }
+}
 function renderMainPageGroups() {
   groupsContainer.innerHTML = '';
   siteData.forEach(group => {
@@ -328,7 +364,9 @@ function renderMainPageGroups() {
     title.textContent = group.title;
     div.appendChild(title);
     group.links.forEach(link => {
-      const a = document.createElement('a'); a.href = link.url; a.target = "_blank"; a.textContent = link.name;
+      const href = normalizeLinkUrl(link.url);
+      if (!href) return;
+      const a = document.createElement('a'); a.href = href; a.target = "_blank"; a.rel = 'noopener'; a.textContent = link.name;
       div.appendChild(a);
     });
     groupsContainer.appendChild(div);
@@ -340,7 +378,8 @@ function setWeatherMessage(message, state = '') {
   weatherDisplay.classList.remove('is-muted', 'is-prompt', 'is-error');
   if (state) weatherDisplay.classList.add(state);
   weatherTemp.textContent = message;
-  weatherTemp.style.cssText = '';
+  weatherCondition.textContent = '';
+  weatherCondition.style.display = 'none';
   weatherFeelsLike.style.display = weatherHighLow.style.display = 'none';
 }
 function getSavedWeatherLocation() {
@@ -367,12 +406,24 @@ function locationLookupValue(location) {
 function qweatherLang() {
   return currentLang === 'zh' ? 'zh-hans' : 'en';
 }
+async function fetchJson(url, timeout = 8000) {
+  const controller = new AbortController();
+  const timer = setTimeout(() => controller.abort(), timeout);
+  try {
+    const response = await fetch(url, { signal: controller.signal });
+    if (!response.ok) throw new Error(t('weatherApiFailed'));
+    return await response.json();
+  } catch (error) {
+    if (error.name === 'AbortError') throw new Error(t('locationSearchFailed'));
+    throw error;
+  } finally { clearTimeout(timer); }
+}
 async function lookupLocations(query, number = 6) {
   const apiKey = getApiKey();
   const value = locationLookupValue(query);
   if (!apiKey || !value) return [];
   const url = `https://geoapi.qweather.com/v2/city/lookup?location=${encodeURIComponent(value)}&number=${number}&lang=${qweatherLang()}&key=${apiKey}`;
-  const res = await fetch(url).then(r => r.json());
+  const res = await fetchJson(url);
   if (res.code && res.code !== '200') throw new Error(t('weatherApiFailed'));
   return res.location || [];
 }
@@ -382,13 +433,20 @@ function initWeather() {
   else if (!loc) setWeatherMessage(t('clickToGetLoc'), 'is-prompt');
   else fetchWeatherData(loc);
 }
-async function fetchWeatherData(loc, isCoords = false) {
+function clearWeatherCache() { localStorage.removeItem('weatherCache'); }
+async function fetchWeatherData(loc) {
   const apiKey = getApiKey();
   if (!apiKey) return;
   const WEATHER_CACHE_TTL = 10 * 60 * 1000;
-  const cached = localStorage.getItem('weatherCache'), time = localStorage.getItem('weatherCacheTime');
-  if (cached && time && Date.now() - Number(time) < (isCoords ? 120000 : WEATHER_CACHE_TTL)) {
-    try { applyWeatherData(JSON.parse(cached)); return; } catch(e) { localStorage.removeItem('weatherCache'); }
+  const fingerprint = apiKey.slice(-8);
+  const cached = localStorage.getItem('weatherCache');
+  if (cached) {
+    try {
+      const entry = JSON.parse(cached);
+      const currentId = weatherLocationValue(loc);
+      if (entry.locationId === currentId && entry.apiKeyFingerprint === fingerprint && Date.now() - entry.fetchedAt < WEATHER_CACHE_TTL) { applyWeatherData(entry.data); return; }
+    } catch (e) { /* ignore malformed cache */ }
+    clearWeatherCache();
   }
   setWeatherMessage(t('loading'), 'is-prompt');
   try {
@@ -398,20 +456,19 @@ async function fetchWeatherData(loc, isCoords = false) {
     localStorage.setItem('weatherLocationData', JSON.stringify(selectedLocation));
     localStorage.setItem('weatherLocation', selectedLocation.name || locId);
     const [curr, fore] = await Promise.all([
-      fetch(`https://devapi.qweather.com/v7/weather/now?location=${locId}&key=${apiKey}`).then(r => r.json()),
-      fetch(`https://devapi.qweather.com/v7/weather/3d?location=${locId}&key=${apiKey}`).then(r => r.json())
+      fetchJson(`https://devapi.qweather.com/v7/weather/now?location=${locId}&key=${apiKey}`),
+      fetchJson(`https://devapi.qweather.com/v7/weather/3d?location=${locId}&key=${apiKey}`)
     ]);
     if (curr.code !== '200' || fore.code !== '200' || !curr.now || !fore.daily?.[0]) throw new Error(t('weatherApiFailed'));
-    const data = { temp: Math.round(curr.now.temp), feelsLike: Math.round(curr.now.feelsLike), tempMax: fore.daily[0].tempMax, tempMin: fore.daily[0].tempMin };
+    const data = { temp: Math.round(curr.now.temp), condition: curr.now.text || '', feelsLike: Math.round(curr.now.feelsLike), tempMax: fore.daily[0].tempMax, tempMin: fore.daily[0].tempMin };
     applyWeatherData(data);
-    localStorage.setItem('weatherCache', JSON.stringify(data));
-    localStorage.setItem('weatherCacheTime', String(Date.now()));
+    localStorage.setItem('weatherCache', JSON.stringify({ locationId: locId, apiKeyFingerprint: fingerprint, fetchedAt: Date.now(), data }));
   } catch(e) {
     console.error(e);
     setWeatherMessage(e.message || t('weatherFailed'), 'is-error');
   }
 }
-function applyWeatherData(data) { weatherDisplay.classList.remove('is-muted', 'is-prompt', 'is-error'); weatherTemp.style.cssText = ''; weatherTemp.textContent = `${data.temp}°C`; weatherFeelsLike.textContent = `${t('feelsLike')} ${data.feelsLike}°C`; weatherHighLow.textContent = `H ${data.tempMax}°C / L ${data.tempMin}°C`; weatherFeelsLike.style.display = weatherHighLow.style.display = ''; }
+function applyWeatherData(data) { weatherDisplay.classList.remove('is-muted', 'is-prompt', 'is-error'); weatherTemp.textContent = `${data.temp}°C`; weatherCondition.textContent = data.condition || ''; weatherCondition.style.display = data.condition ? '' : 'none'; weatherFeelsLike.textContent = `${t('feelsLike')} ${data.feelsLike}°C`; weatherHighLow.textContent = `H ${data.tempMax}°C / L ${data.tempMin}°C`; weatherFeelsLike.style.display = weatherHighLow.style.display = ''; }
 
 let selectedWeatherLocation = null;
 let locationSearchToken = 0;
@@ -502,14 +559,19 @@ async function confirmWeatherLocation(location) {
     locationError.textContent = t('selectLocationFirst');
     return;
   }
-  localStorage.removeItem('weatherCache');
-  localStorage.removeItem('weatherCacheTime');
+  clearWeatherCache();
   setWeatherMessage(t('loading'), 'is-prompt');
   await fetchWeatherData(loc);
   closeModal(locationModal);
 }
 
-function setSearchEngine(id) { const eng = enginesData.find(e => e.id === id) || enginesData[0]; searchInput.placeholder = t('searchWith', {name: eng.name}); setEngineIcon(currentEngineIcon, eng.icon); localStorage.setItem('searchEngine', eng.id); }
+function setSearchEngine(id) {
+  const eng = enginesData.find(e => e.id === id) || enginesData[0];
+  if (!eng) return;
+  searchInput.placeholder = t('searchWith', {name: eng.name});
+  setEngineIcon(currentEngineIcon, eng.icon);
+  localStorage.setItem('searchEngine', eng.id);
+}
 function renderEngineDropdown() {
   engineList.innerHTML = '';
   enginesData.forEach(eng => {
@@ -517,8 +579,18 @@ function renderEngineDropdown() {
     const label = document.createElement('span');
     label.className = 'engine-list-label';
     label.textContent = eng.name;
+    li.tabIndex = -1;
+    li.setAttribute('role', 'option');
+    li.setAttribute('aria-selected', String(localStorage.getItem('searchEngine') === eng.id));
     li.append(createEngineIcon(eng.icon), label);
-    li.onclick = (e) => { e.stopPropagation(); setSearchEngine(eng.id); engineList.classList.remove('show'); };
+    li.onclick = (e) => { e.stopPropagation(); setSearchEngine(eng.id); renderEngineDropdown(); setEngineListOpen(false); searchInput.focus(); };
+    li.onkeydown = e => {
+      const options = [...engineList.children], index = options.indexOf(li);
+      if (e.key === 'ArrowDown') { e.preventDefault(); options[(index + 1) % options.length]?.focus(); }
+      if (e.key === 'ArrowUp') { e.preventDefault(); options[(index - 1 + options.length) % options.length]?.focus(); }
+      if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); li.click(); }
+      if (e.key === 'Escape') { e.preventDefault(); setEngineListOpen(false); searchEngineSelector.focus(); }
+    };
     engineList.appendChild(li);
   });
 }
@@ -562,11 +634,14 @@ function closeOnBackdropClick(modal, onClose) {
   });
 }
 document.addEventListener('keydown', e => {
+  if (e.key === 'Escape' && engineList.classList.contains('show')) { engineList.classList.remove('show'); searchEngineSelector.setAttribute('aria-expanded', 'false'); searchEngineSelector.focus(); return; }
   const activeModal = getActiveModal();
   if (!activeModal) return;
   if (e.key === 'Escape') {
     e.preventDefault();
     if (activeModal === customConfirmModal) { confirmNoBtn.click(); return; }
+    if (activeModal === customInputModal) { customInputNo.click(); return; }
+    if (activeModal === customNoticeModal) { customNoticeClose.click(); return; }
     if (activeModal === settingsModal) { settingsCloseButton.click(); return; }
     if (activeModal === locationModal) { locCloseButton.click(); }
     return;
@@ -579,15 +654,31 @@ document.addEventListener('keydown', e => {
   else if (!e.shiftKey && document.activeElement === last) { e.preventDefault(); first.focus({ preventScroll: true }); }
 });
 function customConfirm(m) { return new Promise(res => { customConfirmMessage.textContent = m; openModal(customConfirmModal, confirmNoBtn); confirmYesBtn.onclick = () => { closeModal(customConfirmModal); res(true); }; confirmNoBtn.onclick = () => { closeModal(customConfirmModal); res(false); }; }); }
+function customInput(title, initial = '') {
+  return new Promise(resolve => {
+    customInputTitle.textContent = title;
+    customInputValue.value = initial;
+    openModal(customInputModal, customInputValue);
+    const finish = value => { closeModal(customInputModal); resolve(value); };
+    customInputYes.onclick = () => finish(customInputValue.value.trim() || null);
+    customInputNo.onclick = () => finish(null);
+    customInputValue.onkeydown = e => { if (e.key === 'Enter') { e.preventDefault(); customInputYes.click(); } };
+  });
+}
+function customNotice(message) {
+  customNoticeMessage.textContent = message;
+  openModal(customNoticeModal, customNoticeClose);
+  customNoticeClose.onclick = () => closeModal(customNoticeModal);
+}
 
-weatherDisplay.onclick = () => {
-  if (!getApiKey()) {
-    settingsIcon.click();
-    return;
-  }
+function openWeatherAction() {
+  if (!getApiKey()) { settingsIcon.click(); return; }
+  if (weatherDisplay.classList.contains('is-error')) { const loc = getSavedWeatherLocation(); if (loc) { clearWeatherCache(); fetchWeatherData(loc); return; } }
   resetLocationModal();
   openModal(locationModal, locationInput);
-};
+}
+weatherDisplay.onclick = openWeatherAction;
+weatherDisplay.onkeydown = e => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); openWeatherAction(); } };
 locCloseButton.onclick = () => closeModal(locationModal);
 closeOnBackdropClick(locationModal, () => locCloseButton.onclick());
 locationInput.addEventListener('input', searchLocationSuggestions);
@@ -625,23 +716,52 @@ useCurrentLocationBtn.onclick = () => {
       locationError.textContent = t('locFailed');
       setWeatherMessage(t('locFailed'), 'is-error');
       useCurrentLocationBtn.textContent = t('useCurLoc');
-    }
+    },
+    { enableHighAccuracy: false, timeout: 10000, maximumAge: 300000 }
   );
 };
 settingsIcon.onclick = async () => { await renderSettingsGroups(); openModal(settingsModal, settingsGroupsContainer.querySelector('input, button') || settingsCloseButton); };
 settingsCloseButton.onclick = () => { closeModal(settingsModal); saveSiteData(); renderMainPageGroups(); };
 closeOnBackdropClick(settingsModal, () => settingsCloseButton.onclick());
-document.getElementById('langToggleBtnSettings').onclick = () => { currentLang = currentLang === 'zh' ? 'en' : 'zh'; localStorage.setItem('lang', currentLang); updateAllTexts(); };
+document.getElementById('langToggleBtnSettings').onclick = () => { currentLang = currentLang === 'zh' ? 'en' : 'zh'; localStorage.setItem('lang', currentLang); updateAllTexts(); initWeather(); };
 document.getElementById('saveUsernameBtn').onclick = () => { localStorage.setItem('userName', document.getElementById('usernameInput').value.trim()); renderUsernameSection(); updateGreeting(); };
 document.getElementById('editUsernameBtn').onclick = () => { document.getElementById('username-saved-mode').style.display = 'none'; document.getElementById('username-edit-mode').style.display = 'flex'; };
-document.getElementById('saveApiKeyBtn').onclick = () => { localStorage.setItem('qweatherApiKey', document.getElementById('apiKeyInput').value.trim()); localStorage.removeItem('weatherCache'); initWeather(); renderApiKeySection(); };
+document.getElementById('saveApiKeyBtn').onclick = () => { localStorage.setItem('qweatherApiKey', document.getElementById('apiKeyInput').value.trim()); clearWeatherCache(); initWeather(); renderApiKeySection(); };
 document.getElementById('editApiKeyBtn').onclick = () => { document.getElementById('api-key-saved-mode').style.display = 'none'; document.getElementById('api-key-edit-mode').style.display = 'flex'; };
 
-searchEngineSelector.onclick = e => { e.stopPropagation(); engineList.classList.toggle('show'); };
-document.onclick = () => engineList.classList.remove('show');
-searchForm.onsubmit = e => { e.preventDefault(); const q = searchInput.value.trim(); if (!q) return; const isUrl = /^https?:\/\//i.test(q) || /^(localhost|127\.0\.0\.1)(:\d+)?(\/.*)?$/i.test(q) || /^[^\s]+\.[a-z]{2,}([:\/?#].*)?$/i.test(q); if (isUrl) { window.open(/^https?:\/\//i.test(q) ? q : 'https://' + q, '_blank'); } else { const eng = enginesData.find(e => e.id === (localStorage.getItem('searchEngine') || enginesData[0].id)); window.open(eng.url.replace('{query}', encodeURIComponent(q)), '_blank'); } };
+function setEngineListOpen(open) {
+  engineList.classList.toggle('show', open);
+  searchEngineSelector.setAttribute('aria-expanded', String(open));
+}
+searchEngineSelector.onclick = e => { e.stopPropagation(); setEngineListOpen(!engineList.classList.contains('show')); };
+searchEngineSelector.onkeydown = e => {
+  if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); searchEngineSelector.click(); }
+  if (e.key === 'ArrowDown') { e.preventDefault(); setEngineListOpen(true); engineList.querySelector('li')?.focus(); }
+};
+document.addEventListener('click', () => setEngineListOpen(false));
+function isDirectNavigationTarget(value) {
+  return /^https?:\/\//i.test(value)
+    || /^(localhost)(:\d+)?([/?#].*)?$/i.test(value)
+    || /^(\d{1,3}\.){3}\d{1,3}(:\d+)?([/?#].*)?$/.test(value)
+    || /^\[[0-9a-f:]+\](:\d+)?([/?#].*)?$/i.test(value)
+    || /^[^\s]+\.[a-z]{2,}([:/?#].*)?$/i.test(value);
+}
+searchForm.onsubmit = e => {
+  e.preventDefault();
+  const q = searchInput.value.trim();
+  if (!q) return;
+  if (isDirectNavigationTarget(q)) { window.open(/^https?:\/\//i.test(q) ? q : 'https://' + q, '_blank', 'noopener'); return; }
+  const eng = enginesData.find(item => item.id === localStorage.getItem('searchEngine')) || enginesData[0];
+  window.open(eng.url.replace('{query}', encodeURIComponent(q)), '_blank', 'noopener');
+};
 
-addNewGroupBtn.addEventListener('click', () => { const n = prompt(t('newGroupNamePrompt')); if (n && n.trim()) { siteData.push({ title: n.trim(), color: '#ffa726', links: [] }); renderSettingsGroups(); renderMainPageGroups(); setTimeout(() => settingsGroupsContainer.scrollTop = settingsGroupsContainer.scrollHeight, 100); } });
+addNewGroupBtn.addEventListener('click', async () => {
+  const name = await customInput(t('newGroupNamePrompt'));
+  if (!name) return;
+  siteData.push({ title: name, color: '#ffa726', links: [] });
+  saveSiteData(); renderSettingsGroups(); renderMainPageGroups();
+  setTimeout(() => settingsGroupsContainer.scrollTop = settingsGroupsContainer.scrollHeight, 100);
+});
 document.getElementById('editEnginesBtn').addEventListener('click', editEngines);
 
 async function editEngines() {
@@ -657,7 +777,7 @@ async function editEngines() {
       d.append(createIcon('bars', 'handle'), createEngineIcon(eng.icon, 'engine-icon'), name, editBtn, delBtn);
       settingsGroupsContainer.appendChild(d);
       d.querySelector('.edit-eng-btn').addEventListener('click', () => editSingleEngine(idx, renderEngineList));
-      d.querySelector('.del-eng-btn').addEventListener('click', async () => { if (enginesData.length <= 1) { alert(t('keepOneEngine')); return; } if (await customConfirm(t('delEngineConfirm', {name: eng.name}))) { enginesData.splice(idx, 1); saveEnginesData(); renderEngineDropdown(); if (localStorage.getItem('searchEngine') === eng.id) setSearchEngine(enginesData[0].id); renderEngineList(); } });
+      d.querySelector('.del-eng-btn').addEventListener('click', async () => { if (enginesData.length <= 1) { customNotice(t('keepOneEngine')); return; } if (await customConfirm(t('delEngineConfirm', {name: eng.name}))) { enginesData.splice(idx, 1); saveEnginesData(); renderEngineDropdown(); if (localStorage.getItem('searchEngine') === eng.id) setSearchEngine(enginesData[0].id); renderEngineList(); } });
     });
     const actions = document.createElement('div'); actions.className = 'settings-inline-actions';
     const addEngBtn = document.createElement('button'); addEngBtn.id = 'addEngBtn'; addEngBtn.className = 'btn btn-primary'; addEngBtn.append(createIcon('plus'), document.createTextNode(` ${t('customEngine')}`));
@@ -667,14 +787,15 @@ async function editEngines() {
     document.getElementById('addEngBtn').onclick = () => { const newId = 'custom_' + Date.now(); enginesData.push({ id: newId, name: 'New Engine', url: 'https://example.com/search?q={query}', icon: 'search' }); saveEnginesData(); renderEngineDropdown(); renderEngineList(); setTimeout(() => editSingleEngine(enginesData.length - 1, renderEngineList), 50); };
     document.getElementById('backFromEng').onclick = () => { saveEnginesData(); renderEngineDropdown(); setSearchEngine(localStorage.getItem('searchEngine') || enginesData[0]?.id); renderSettingsGroups(); };
     if (sortableInst) sortableInst.destroy();
-    sortableInst = new Sortable(settingsGroupsContainer, { 
-      handle: '.handle', animation: reducedMotionQuery.matches ? 0 : 150, 
+    sortableInst = new Sortable(settingsGroupsContainer, {
+      handle: '.handle', animation: reducedMotionQuery.matches ? 0 : 150,
       forceFallback: true,
       fallbackClass: 'sortable-fallback',
       ghostClass: 'sortable-ghost',
       chosenClass: 'sortable-chosen',
-      filter: '#addEngBtn, #backFromEng', 
-      onEnd: e => { const item = enginesData.splice(e.oldIndex, 1)[0]; enginesData.splice(e.newIndex, 0, item); saveEnginesData(); renderEngineDropdown(); }
+      draggable: '.group-item',
+      filter: '#addEngBtn, #backFromEng',
+      onEnd: e => { const item = enginesData.splice(e.oldDraggableIndex, 1)[0]; enginesData.splice(e.newDraggableIndex, 0, item); saveEnginesData(); renderEngineDropdown(); }
     });
   };
   renderEngineList();
@@ -756,8 +877,12 @@ function editSingleEngine(idx, onBack) {
       name = exactPreset.name;
       url = exactPreset.url;
     }
-    if (!name || !url) { alert(t('engineNameUrlEmpty')); return; }
+    if (!name || !url) { customNotice(t('engineNameUrlEmpty')); return; }
     url = normalizeSearchEngineUrl(url);
+    try {
+      const testUrl = new URL(url.replace('{query}', 'test'));
+      if (!/^https?:$/.test(testUrl.protocol)) throw new Error();
+    } catch (error) { customNotice(t('engineNameUrlEmpty')); return; }
     const preset = exactPreset || findEnginePresetByUrl(url);
     if (exactPreset) name = exactPreset.name;
     const i = preset?.icon || iconForEngine(name, url);
@@ -788,16 +913,20 @@ async function renderSettingsGroups() {
   siteData.forEach((g) => {
     const div = document.createElement('div'); div.className = 'setting-item group-item';
     const input = document.createElement('input'); input.type = 'text'; input.className = 'setting-input setting-input-flush'; input.value = g.title;
-    const editBtn = document.createElement('button'); editBtn.className = 'btn btn-icon edit-btn'; editBtn.appendChild(createIcon('edit'));
-    const delBtn = document.createElement('button'); delBtn.className = 'btn btn-icon btn-danger del-btn'; delBtn.appendChild(createIcon('trash'));
-    div.append(createIcon('bars', 'handle'), input, editBtn, delBtn);
-    input.oninput = e => { g.title = e.target.value; };
+    input.setAttribute('aria-label', t('groupNamePlaceholder'));
+    const editBtn = document.createElement('button'); editBtn.className = 'btn btn-icon edit-btn'; editBtn.title = editBtn.setAttribute('aria-label', t('editBtnTitle')) || t('editBtnTitle'); editBtn.appendChild(createIcon('edit'));
+    const delBtn = document.createElement('button'); delBtn.className = 'btn btn-icon btn-danger del-btn'; delBtn.title = delBtn.setAttribute('aria-label', t('delGroupTitle')) || t('delGroupTitle'); delBtn.appendChild(createIcon('trash'));
+    const handle = createIcon('bars', 'handle'); handle.title = t('dragSortTitle'); handle.setAttribute('aria-hidden', 'true');
+    div.append(handle, input, editBtn, delBtn);
+    input.oninput = e => { g.title = e.target.value; saveSiteData(); };
     editBtn.onclick = () => editGroup(g);
     delBtn.onclick = async () => {
       if (await customConfirm(t('delGroupConfirm'))) {
         const idx = siteData.indexOf(g);
         if (idx !== -1) {
           siteData.splice(idx, 1);
+          saveSiteData();
+          renderMainPageGroups();
           renderSettingsGroups();
         }
       }
@@ -806,13 +935,14 @@ async function renderSettingsGroups() {
   });
   await ensureSortable();
   if (sortableInst) sortableInst.destroy();
-  sortableInst = new Sortable(settingsGroupsContainer, { 
-    handle: '.handle', animation: reducedMotionQuery.matches ? 0 : 150, 
-    forceFallback: true, 
+  sortableInst = new Sortable(settingsGroupsContainer, {
+    handle: '.handle', animation: reducedMotionQuery.matches ? 0 : 150,
+    forceFallback: true,
     fallbackClass: 'sortable-fallback',
     ghostClass: 'sortable-ghost',
     chosenClass: 'sortable-chosen',
-    onEnd: e => { const item = siteData.splice(e.oldIndex, 1)[0]; siteData.splice(e.newIndex, 0, item); saveSiteData(); renderMainPageGroups(); } 
+    draggable: '.group-item',
+    onEnd: e => { const item = siteData.splice(e.oldDraggableIndex, 1)[0]; siteData.splice(e.newDraggableIndex, 0, item); saveSiteData(); renderMainPageGroups(); }
   });
 }
 
@@ -821,12 +951,15 @@ async function editGroup(group) {
   const g = group;
   settingsTitle.textContent = ''; settingsTitle.append(createIcon('folder'), document.createTextNode(g.title)); settingsTitle.querySelector('.ui-icon').style.cssText = `color:${g.color}; margin-right:8px;`; globalSettingsSection.style.display = "none"; settingsActions.style.display = "none"; document.getElementById('langToggleBtnSettings').style.display = 'none';
   settingsGroupsContainer.innerHTML = '';
+  const colorField = document.createElement('label'); colorField.className = 'group-color-field'; colorField.textContent = currentLang === 'zh' ? '分组颜色' : 'Group Color';
+  const colorInput = document.createElement('input'); colorInput.type = 'color'; colorInput.value = g.color; colorInput.oninput = e => { g.color = e.target.value; saveSiteData(); renderMainPageGroups(); };
+  colorField.appendChild(colorInput);
   const list = document.createElement('div'); list.id = 'l-list'; list.className = 'link-list';
   const actions = document.createElement('div'); actions.className = 'settings-inline-actions';
   const addBtn = document.createElement('button'); addBtn.id = 'addL'; addBtn.className = 'btn btn-primary'; addBtn.append(createIcon('plus'), document.createTextNode(` ${t('addNewLink')}`));
   const backBtn = document.createElement('button'); backBtn.id = 'backG'; backBtn.className = 'btn btn-secondary'; backBtn.textContent = t('back');
   actions.append(addBtn, backBtn);
-  settingsGroupsContainer.append(list, actions);
+  settingsGroupsContainer.append(colorField, list, actions);
   const render = () => {
     list.innerHTML = '';
     g.links.forEach((l) => {
@@ -834,15 +967,17 @@ async function editGroup(group) {
       const nameInput = document.createElement('input'); nameInput.type = 'text'; nameInput.className = 'setting-input link-name-input'; nameInput.value = l.name; nameInput.placeholder = t('linkNamePlaceholder');
       const divider = document.createElement('div'); divider.className = 'link-divider';
       const urlInput = document.createElement('input'); urlInput.type = 'text'; urlInput.className = 'setting-input link-url-input'; urlInput.value = l.url; urlInput.placeholder = 'URL';
-      const delBtn = document.createElement('button'); delBtn.className = 'btn btn-icon btn-danger'; delBtn.appendChild(createIcon('trash'));
+      const delBtn = document.createElement('button'); delBtn.className = 'btn btn-icon btn-danger'; delBtn.title = t('delLinkTitle'); delBtn.setAttribute('aria-label', t('delLinkTitle')); delBtn.appendChild(createIcon('trash'));
       d.append(createIcon('bars', 'handle'), nameInput, divider, urlInput, delBtn);
-      nameInput.oninput = e => { l.name = e.target.value; };
-      urlInput.oninput = e => { l.url = e.target.value; };
+      nameInput.oninput = e => { l.name = e.target.value; saveSiteData(); };
+      urlInput.oninput = e => { l.url = e.target.value; saveSiteData(); };
+      urlInput.onblur = () => { l.url = normalizeLinkUrl(l.url); urlInput.value = l.url; saveSiteData(); renderMainPageGroups(); };
       delBtn.onclick = async () => {
         if (await customConfirm(t('delLinkConfirm'))) {
           const linkIdx = g.links.indexOf(l);
           if (linkIdx !== -1) {
             g.links.splice(linkIdx, 1);
+            saveSiteData(); renderMainPageGroups();
             render();
           }
         }
@@ -856,31 +991,68 @@ async function editGroup(group) {
       fallbackClass: 'sortable-fallback',
       ghostClass: 'sortable-ghost',
       chosenClass: 'sortable-chosen',
-      onEnd: e => { const item = g.links.splice(e.oldIndex, 1)[0]; g.links.splice(e.newIndex, 0, item); saveSiteData(); renderMainPageGroups(); }
+      draggable: '.link-item',
+      onEnd: e => { const item = g.links.splice(e.oldDraggableIndex, 1)[0]; g.links.splice(e.newDraggableIndex, 0, item); saveSiteData(); renderMainPageGroups(); }
     });
   };
   render();
-  document.getElementById('addL').onclick = () => { g.links.push({name:'', url:''}); render(); };
+  document.getElementById('addL').onclick = () => { g.links.push({name:'', url:''}); saveSiteData(); render(); };
   document.getElementById('backG').onclick = renderSettingsGroups;
 }
 
-function handleFirstVisit() {
-  if (!localStorage.getItem('hasVisited')) {
-    const ov = document.getElementById('welcome-overlay'), inp = document.getElementById('welcome-name-input');
-    const welcomeGreetingContainer = document.getElementById('welcome-greeting-container');
-    ov.style.display = 'flex'; setTimeout(() => inp.focus(), 100);
-    inp.onkeydown = e => {
-      if (e.key === 'Enter') {
-        const val = inp.value.trim(); localStorage.setItem('userName', val); localStorage.setItem('hasVisited', 'true');
-        updateGreeting(); renderUsernameSection();
-        document.getElementById('welcome-input-container').style.opacity = '0'; document.getElementById('welcome-input-container').style.transform = 'translateY(-30px)';
-        setTimeout(() => {
-          document.getElementById('welcome-input-container').style.display = 'none'; const msg = getGreetingMsg(); document.getElementById('welcome-greeting-text').textContent = val ? `Hey ${val}, ${msg}` : `Hey, ${msg}`;
-          welcomeGreetingContainer.style.opacity = '1'; welcomeGreetingContainer.style.transform = 'translateY(0)';
-          setTimeout(() => { welcomeGreetingContainer.style.opacity = '0'; welcomeGreetingContainer.style.transform = 'translateY(-30px)'; setTimeout(() => { ov.style.opacity = '0'; document.documentElement.classList.add('do-reveal'); document.documentElement.classList.remove('is-first-visit'); setTimeout(() => { ov.style.display = 'none'; setTimeout(() => { document.documentElement.classList.remove('do-reveal'); }, 1500); }, 800); }, 400); }, 1500);
-        }, 500);
-      }
-    };
+function exportConfig() {
+  const settings = {};
+  ['siteData', 'enginesData', 'theme', 'lang', 'userName', 'weatherLocationData', 'weatherLocation', 'searchEngine'].forEach(key => {
+    const value = localStorage.getItem(key);
+    if (value !== null) settings[key] = value;
+  });
+  const blob = new Blob([JSON.stringify({ schemaVersion: 1, exportedAt: new Date().toISOString(), settings }, null, 2)], { type: 'application/json' });
+  const link = document.createElement('a');
+  link.href = URL.createObjectURL(blob); link.download = 'startpage-config.json'; link.click();
+  setTimeout(() => URL.revokeObjectURL(link.href), 0);
+}
+async function importConfig(file) {
+  try {
+    const data = JSON.parse(await file.text());
+    if (data?.schemaVersion !== 1 || !data.settings || typeof data.settings !== 'object') throw new Error();
+    for (const key of ['siteData', 'enginesData']) if (key in data.settings) JSON.parse(data.settings[key]);
+    if (!await customConfirm(t('importConfirm'))) return;
+    for (const [key, value] of Object.entries(data.settings)) {
+      if (['siteData', 'enginesData', 'theme', 'lang', 'userName', 'weatherLocationData', 'weatherLocation', 'searchEngine'].includes(key) && typeof value === 'string') localStorage.setItem(key, value);
+    }
+    clearWeatherCache(); location.reload();
+  } catch (error) { customNotice(t('importFailed')); }
+}
+exportConfigBtn.onclick = exportConfig;
+importConfigBtn.onclick = () => importConfigInput.click();
+importConfigInput.onchange = () => { const file = importConfigInput.files[0]; if (file) importConfig(file); importConfigInput.value = ''; };
+
+function delay(ms) { return new Promise(resolve => setTimeout(resolve, ms)); }
+async function finishWelcome(name) {
+  localStorage.setItem('userName', name);
+  localStorage.setItem('hasVisited', 'true');
+  updateGreeting(); renderUsernameSection();
+  const overlay = document.getElementById('welcome-overlay');
+  if (!reducedMotionQuery.matches) {
+    document.getElementById('welcome-input-container').style.opacity = '0';
+    await delay(250);
   }
+  overlay.style.opacity = '0';
+  document.documentElement.classList.add('do-reveal');
+  document.documentElement.classList.remove('is-first-visit');
+  await delay(reducedMotionQuery.matches ? 0 : 400);
+  overlay.style.display = 'none';
+  document.documentElement.classList.remove('do-reveal');
+  searchInput.focus();
+}
+function handleFirstVisit() {
+  if (localStorage.getItem('hasVisited')) return;
+  const overlay = document.getElementById('welcome-overlay');
+  const input = document.getElementById('welcome-name-input');
+  const skip = document.getElementById('welcome-skip');
+  overlay.style.display = 'flex';
+  setTimeout(() => input.focus(), 0);
+  input.onkeydown = e => { if (e.key === 'Enter') finishWelcome(input.value.trim()); if (e.key === 'Escape') finishWelcome(''); };
+  skip.onclick = () => finishWelcome('');
 }
 init();

@@ -1,0 +1,8 @@
+startpage.html
+*.zip
+release_notes.md
+.claude/
+.DS_Store
+Thumbs.db
+.vscode/
+.idea/

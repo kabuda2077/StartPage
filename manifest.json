@@ -1,8 +1,13 @@
 {
   "manifest_version": 3,
   "name": "StartPage",
-  "version": "1.6",
+  "version": "1.7.0",
   "description": "A clean and customizable new tab page.",
+  "author": "StartPage contributors",
+  "homepage_url": "https://github.com/kabuda2077/StartPage",
+  "permissions": [
+    "geolocation"
+  ],
   "chrome_url_overrides": {
     "newtab": "index.html"
   },

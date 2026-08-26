@@ -1,12 +1,12 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="zh-CN">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Start Page</title>
-  
+  <script src="boot.js"></script>
   <link rel="stylesheet" href="style.css">
-  
+
   <script src="script.js" defer></script>
 </head>
 <body>
@@ -14,6 +14,7 @@
     <div id="welcome-input-container">
       <div id="welcome-prompt">choose a name for you</div>
       <input type="text" id="welcome-name-input" placeholder="Press Enter to confirm" autocomplete="off" />
+      <button type="button" id="welcome-skip" class="welcome-skip">Skip</button>
     </div>
     <div id="welcome-greeting-container">
       <div id="welcome-greeting-text"></div>
@@ -22,9 +23,10 @@
 
   <h1 id="greeting" class="reveal-target" style="--delay: 1;">Hello!</h1>
   <div class="datetime-weather-container reveal-target" style="--delay: 2;">
-    <div id="weather" class="weather-display">
+    <div id="weather" class="weather-display" role="button" tabindex="0" aria-label="Weather settings">
       <div class="temperature-info">
         <span id="weather-temp">--°C</span>
+        <span id="weather-condition" class="weather-detail">--</span>
         <span id="weather-feels-like" class="weather-detail">--</span>
         <span id="weather-high-low" class="weather-detail">--</span>
       </div>
@@ -34,9 +36,9 @@
   <div class="search-box reveal-target" style="--delay: 3;">
     <form id="search-form">
       <div class="search-container">
-        <div id="search-engine-selector" class="search-engine-selector">
+        <div id="search-engine-selector" class="search-engine-selector" role="button" tabindex="0" aria-label="Select search engine" aria-haspopup="listbox" aria-expanded="false">
           <span id="current-engine-icon" class="ui-icon engine-brand-icon"></span>
-          <ul id="engine-list" class="engine-list"></ul>
+          <ul id="engine-list" class="engine-list" role="listbox"></ul>
         </div>
         <input id="search-input" type="text" name="q" placeholder="Search something..." autofocus autocomplete="off" />
       </div>
@@ -67,10 +69,10 @@
   </div>
 
   <div id="floating-controls" class="reveal-target" style="--delay: 5;">
-    <div id="theme-toggle-icon" class="floating-btn" title="Toggle Dark Mode"></div>
-    <div id="settings-icon" class="floating-btn" title="Settings">
+    <button type="button" id="theme-toggle-icon" class="floating-btn" title="Toggle Dark Mode" aria-label="Toggle Dark Mode"></button>
+    <button type="button" id="settings-icon" class="floating-btn" title="Settings" aria-label="Settings">
       <span class="ui-icon" data-icon="cog"></span>
-    </div>
+    </button>
   </div>
 
   <div id="settingsModal" class="modal" role="dialog" aria-modal="true" aria-labelledby="settings-title" tabindex="-1">
@@ -83,13 +85,18 @@
         </div>
       </div>
       <div id="settings-groups-container"></div>
-      
+
       <div id="settings-actions" class="settings-actions-section">
         <button id="addNewGroupBtn" class="btn btn-primary full-width">
           <span class="ui-icon" data-icon="plus"></span> <span id="addNewGroupBtnText">添加新分组</span>
         </button>
+        <div class="settings-data-actions">
+          <button id="exportConfigBtn" class="btn btn-secondary full-width">导出配置</button>
+          <button id="importConfigBtn" class="btn btn-secondary full-width">导入配置</button>
+          <input id="importConfigInput" type="file" accept="application/json,.json" hidden>
+        </div>
       </div>
-      
+
       <div id="global-settings-section" class="settings-section">
         <button id="editEnginesBtn" class="btn btn-accent full-width">
           <span class="ui-icon" data-icon="search"></span> <span id="editEnginesBtnText">自定义搜索引擎</span>
@@ -120,12 +127,30 @@
           </div>
           <div class="setting-item edit-height" id="api-key-edit-mode">
             <span class="ui-icon setting-icon" data-icon="key"></span>
-            <input type="text" class="setting-input" id="apiKeyInput" autocomplete="off">
+            <input type="password" class="setting-input" id="apiKeyInput" autocomplete="off">
             <button class="btn btn-icon btn-success" id="saveApiKeyBtn" data-svg="check"></button>
           </div>
           <p id="applyApiKeyText" class="api-key-help"></p>
         </div>
       </div>
+    </div>
+  </div>
+
+  <div id="customInputModal" class="modal" role="dialog" aria-modal="true" aria-labelledby="customInputTitle" tabindex="-1">
+    <div class="modal-content modal-content-confirm">
+      <h2 id="customInputTitle" class="confirm-message"></h2>
+      <input id="customInputValue" class="standalone-input full-width" type="text" autocomplete="off">
+      <div class="confirm-actions">
+        <button class="btn btn-confirm-danger" id="customInputYes">确定</button>
+        <button class="btn btn-secondary" id="customInputNo">取消</button>
+      </div>
+    </div>
+  </div>
+
+  <div id="customNoticeModal" class="modal" role="dialog" aria-modal="true" aria-labelledby="customNoticeMessage" tabindex="-1">
+    <div class="modal-content modal-content-confirm">
+      <p id="customNoticeMessage" class="confirm-message"></p>
+      <button class="btn btn-secondary full-width" id="customNoticeClose">确定</button>
     </div>
   </div>
 
