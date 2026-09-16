@@ -75,7 +75,7 @@ API Host 是账号专属的请求域名，API Key 是请求凭据。这里“可
 
 已知搜索引擎可输入其域名选择预设；其他引擎请填写包含 `{query}` 的完整搜索模板，例如 `https://example.com/search?q={query}`。本地服务与裸 IP 默认使用 HTTP，常规域名默认使用 HTTPS，显式协议保持不变。
 
-分组、链接和引擎均可拖动排序，也可聚焦排序图标后按 `Alt + ↑ / ↓`。多标签页同步已保存配置；独立字段的并发编辑会合并，相同字段冲突会询问保留哪一侧。
+分组、链接和引擎均可拖动排序，也可聚焦排序图标后按 `Alt + ↑ / ↓`。通常同一时间只允许一个页面编辑设置，其他标签页仍可正常使用并同步已保存配置。不支持浏览器编辑锁的环境中，如检测到其他页面修改，会暂停本页保存，提示关闭并重新打开设置；不自动合并配置。
 
 #### 单文件版
 
@@ -89,18 +89,16 @@ node tools/build.mjs
 
 ## 开发与验证
 
-运行时仍为原生 JavaScript，无框架依赖。开发和打包使用 Node.js 22+：
+普通使用不需要 Node.js 或测试工具。开发使用 Node.js 22+，日常只需两个命令：
 
 ```bash
-npm ci --include=dev
-npx playwright install chromium
-npm test
-npm run package
+npm run build  # 同时生成 StartPage.html 和 dist/extension
+npm test       # 运行关键回归检查
 ```
 
-`npm test` 包含数据校验、并发合并、天气请求、浏览器交互、单文件离线和构建检查。`npm run package` 只把运行所需文件复制到 `dist/extension`；测试工具不会进入扩展。Linux CI 另需 `npx playwright install --with-deps chromium`。现有 `bash build.sh` 入口仍可使用。
+构建不需要安装依赖。首次运行测试前执行 `npm ci --include=dev` 和 `npx playwright install chromium`。测试用于防止配置丢失、排序错项、天气竞态和单文件启动失败，不会进入扩展包，也不会在新标签页中运行。
 
-模块职责、配置兼容性与验证边界见 [架构说明](docs/architecture.md)。
+源码结构与测试方式见 [开发说明](docs/development.md)。
 
 ## ✅ 手动检查
 

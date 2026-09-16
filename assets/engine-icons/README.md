@@ -14,4 +14,4 @@ These favicon assets are bundled to avoid network requests when displaying prese
 | github.svg | https://github.githubassets.com/favicons/favicon.svg |
 | zhihu.ico | https://static.zhihu.com/heifetz/favicon.ico |
 
-`build.sh` embeds these assets as data URLs in `StartPage.html`. Update the source files to refresh the bundled icons.
+`tools/build.mjs` embeds these assets as data URLs in `StartPage.html`. Update the source files to refresh the bundled icons.

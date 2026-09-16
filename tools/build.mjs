@@ -23,3 +23,16 @@ const output = path.join(root, 'StartPage.html');
 fs.writeFileSync(`${output}.tmp`, html);
 fs.renameSync(`${output}.tmp`, output);
 console.log(`Built StartPage.html (${Buffer.byteLength(html)} bytes)`);
+
+// Package only runtime files. Tests and development dependencies stay outside.
+const packageOutput = path.join(root, 'dist', 'extension');
+fs.rmSync(packageOutput, { recursive: true, force: true });
+fs.mkdirSync(packageOutput, { recursive: true });
+const runtime = [...read('index.html').matchAll(/<script src="([^"]+)"/g)].map(match => match[1]);
+for (const file of ['manifest.json', 'index.html', 'style.css', 'Sortable.min.js', ...runtime]) {
+  fs.copyFileSync(path.join(root, file), path.join(packageOutput, file));
+}
+for (const dir of ['icons', 'assets/fonts', 'assets/engine-icons']) {
+  fs.cpSync(path.join(root, dir), path.join(packageOutput, dir), { recursive: true, filter: source => !source.endsWith('.md') });
+}
+console.log('Built dist/extension');

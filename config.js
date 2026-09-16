@@ -117,35 +117,87 @@
     if (typeof source !== 'string' || new TextEncoder().encode(source).byteLength > limits.fileBytes) throw Error('backupTooLarge');
     return importSettings(JSON.parse(source));
   }
-  function merge(base, local, remote) {
-    const same = (a, b) => JSON.stringify(a) === JSON.stringify(b);
-    if (same(local, base)) return remote;
-    if (same(remote, base) || same(local, remote)) return local;
-    if (Array.isArray(base) && Array.isArray(local) && Array.isArray(remote)) {
-      const keyed = list => new Map(list.map(item => [item.id, item]));
-      const b = keyed(base), l = keyed(local), r = keyed(remote);
-      const merged = new Map();
-      for (const key of new Set([...b.keys(), ...l.keys(), ...r.keys()])) {
-        const item = merge(b.get(key), l.get(key), r.get(key));
-        if (item !== undefined) merged.set(key, item);
+  globalThis.StartPageData = { limits, id, groups, engines, location, linkUrl, navigationUrl, importSettings, serializeBackup, parseBackup, weatherHost };
+})();
+
+// Browser storage and early theme initialization.
+(() => {
+  if (typeof document === 'undefined') return;
+  const memory = new Map();
+  let persistentStorage;
+  try { persistentStorage = window.localStorage; } catch { /* use session memory */ }
+  const unavailable = () => {
+    persistentStorage = null;
+    window.dispatchEvent(new Event('startpage-storage-status'));
+  };
+  const storage = {
+    get persistent() { return Boolean(persistentStorage); },
+    getItem(key) {
+      if (persistentStorage) {
+        try {
+          const value = persistentStorage.getItem(key);
+          if (value !== null) memory.set(key, value);
+          else memory.delete(key);
+          return value;
+        } catch { unavailable(); }
       }
-      const common = base.filter(item => l.has(item.id) && r.has(item.id)).map(item => item.id);
-      const order = list => list.filter(item => common.includes(item.id)).map(item => item.id);
-      const lo = order(local), ro = order(remote);
-      if (!same(lo, common) && !same(ro, common) && !same(lo, ro)) throw Error('conflict');
-      const preferred = !same(lo, common) ? local : remote;
-      return [...new Set([...preferred.map(item => item.id), ...local.map(item => item.id), ...remote.map(item => item.id)])]
-        .filter(key => merged.has(key)).map(key => merged.get(key));
-    }
-    if (object(base) && object(local) && object(remote)) {
-      const result = {};
-      for (const key of new Set([...Object.keys(base), ...Object.keys(local), ...Object.keys(remote)])) {
-        const value = merge(base[key], local[key], remote[key]);
-        if (value !== undefined) result[key] = value;
+      return memory.has(key) ? memory.get(key) : null;
+    },
+    setItem(key, value) {
+      memory.set(key, String(value));
+      if (persistentStorage) {
+        try { persistentStorage.setItem(key, String(value)); }
+        catch { unavailable(); }
       }
-      return result;
+    },
+    removeItem(key) {
+      memory.delete(key);
+      if (persistentStorage) {
+        try { persistentStorage.removeItem(key); }
+        catch { unavailable(); }
+      }
     }
-    throw Error('conflict');
+  };
+  window.startPageStorage = storage;
+  const root = document.documentElement;
+  if (!storage.getItem('hasVisited')) root.classList.add('is-first-visit');
+  if (storage.getItem('theme') === 'dark') root.classList.add('dark-mode');
+})();
+
+/* Small list persistence helper. Concurrent edits are never merged automatically. */
+(() => {
+  function create(key, validate, defaults, onStale) {
+    const storage = window.startPageStorage;
+    let saved, draft, timer;
+    function cancel() { clearTimeout(timer); timer = null; }
+    function load() {
+      cancel();
+      const raw = storage.getItem(key);
+      try { draft = validate(raw ? JSON.parse(raw) : defaults); }
+      catch {
+        if (raw) storage.setItem(`${key}.recovery`, raw);
+        draft = validate(defaults);
+      }
+      saved = JSON.stringify(draft);
+      if (saved !== raw) storage.setItem(key, saved);
+      return draft;
+    }
+    function flush() {
+      cancel();
+      const value = JSON.stringify(validate(draft));
+      if (value === saved) return true;
+      if (storage.getItem(key) !== saved) { onStale(); return false; }
+      storage.setItem(key, value);
+      saved = value;
+      return true;
+    }
+    function save(value, immediate = true) {
+      draft = value;
+      if (immediate) return flush();
+      cancel(); timer = setTimeout(flush, 180);
+      return true;
+    }
+    return { load, save, flush, cancel };
   }
-  globalThis.StartPageData = { limits, id, groups, engines, location, linkUrl, navigationUrl, importSettings, serializeBackup, parseBackup, merge, weatherHost };
+  globalThis.StartPageStore = { create };
 })();

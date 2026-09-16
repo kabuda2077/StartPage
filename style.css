@@ -706,6 +706,8 @@ body.dark-mode .btn-accent { background-color: #1e293b; color: #818cf8; border-c
 .handle:focus-visible { outline: 2px solid var(--focus-ring); outline-offset: 3px; }
 .weather-host-label { display: block; color: var(--text-light); font-size: 0.75rem; margin: 12px 4px 8px; }
 #weatherHostError:empty { display: none; }
+#settings-editor { border: 0; padding: 0; margin: 0; min-width: 0; }
+#settings-editor:disabled { opacity: 0.6; }
 .settings-status { font-size: 0.75rem; color: var(--text-gray); line-height: 1.5; margin: 0 0 12px; }
 .settings-status:empty { display: none; }
 .setting-input::placeholder { color: var(--text-extra-light); }

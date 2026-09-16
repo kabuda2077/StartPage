@@ -68,13 +68,8 @@ jobs:
       - name: Package extension
         if: steps.check.outputs.exists == 'false'
         run: |
-          npm run package
           cd dist/extension
           zip -r "../../StartPage-${{ steps.version.outputs.version }}.zip" .
-
-      - name: Build single-file HTML
-        if: steps.check.outputs.exists == 'false'
-        run: npm run build
 
       - name: Create Release
         if: steps.check.outputs.exists == 'false'

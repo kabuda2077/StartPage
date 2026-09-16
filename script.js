@@ -117,40 +117,51 @@ const importConfigInput = document.getElementById('importConfigInput');
 
 const DEFAULT_ENGINES = ['google', 'duckduckgo', 'baidu'].map(key => engineFromPreset(ENGINE_PRESETS.find(preset => preset.key === key)));
 let enginesData = [];
-let settingsView = { kind: 'groups' };
 let sortUnavailable = false;
-const conflictPrompt = () => customConfirm(t('storageConflict'));
-const groupStore = StartPageStore.create('siteData', StartPageData.groups, siteData, value => {
-  siteData = value; renderMainPageGroups(); refreshSettingsView();
-}, conflictPrompt);
-const engineStore = StartPageStore.create('enginesData', StartPageData.engines, DEFAULT_ENGINES, value => {
-  enginesData = value; renderEngineDropdown(); setSearchEngine(appStorage.getItem('searchEngine')); refreshSettingsView();
-}, conflictPrompt);
-function refreshSettingsView() {
-  if (settingsModal.style.display !== 'flex') return;
-  if (settingsView.kind === 'group') {
-    const group = siteData.find(item => item.id === settingsView.id);
-    if (group) { editGroup(group); return; }
-  }
-  if (settingsView.kind === 'engine-draft') return;
-  if (settingsView.kind === 'engines') { editEngines(); return; }
-  renderSettingsGroups();
+let settingsStale = false;
+let openingSettings = false;
+let releaseSettingsLock;
+const groupStore = StartPageStore.create('siteData', StartPageData.groups, siteData, invalidateSettings);
+const engineStore = StartPageStore.create('enginesData', StartPageData.engines, DEFAULT_ENGINES, invalidateSettings);
+function invalidateSettings() {
+  if (settingsStale) return;
+  settingsStale = true;
+  groupStore.cancel(); engineStore.cancel();
+  document.getElementById('settings-editor').disabled = true;
+  document.getElementById('langToggleBtnSettings').disabled = true;
+  settingsModal.querySelector('.group-color-field input')?.setAttribute('disabled', '');
+  updateSettingsStatus();
+  customNotice(t('settingsChanged'));
+}
+function acquireSettingsLock() {
+  if (!navigator.locks || !appStorage.persistent) return Promise.resolve(true);
+  return new Promise(resolve => {
+    navigator.locks.request('startpage-settings-editor', { ifAvailable: true }, lock => {
+      if (!lock) { resolve(false); return; }
+      return new Promise(release => { releaseSettingsLock = release; resolve(true); });
+    }).catch(() => resolve(true)); // Storage comparison remains the fallback if locks are denied.
+  });
 }
 function updateSettingsStatus() {
   const recovery = appStorage.getItem('siteData.recovery') || appStorage.getItem('enginesData.recovery');
-  document.getElementById('settings-status').textContent = !appStorage.persistent ? t('storageTemporary') : recovery ? t('invalidConfig') : sortUnavailable ? t('sortUnavailable') : '';
+  document.getElementById('settings-status').textContent = settingsStale ? t('settingsChanged') : !appStorage.persistent ? t('storageTemporary') : recovery ? t('invalidConfig') : sortUnavailable ? t('sortUnavailable') : '';
 }
 window.addEventListener('startpage-storage-status', () => updateSettingsStatus());
 window.addEventListener('storage', event => {
-  if (event.key === 'siteData' || event.key === null) groupStore.receive();
-  if (event.key === 'enginesData' || event.key === null) engineStore.receive();
+  const editableKeys = ['siteData', 'enginesData', 'userName', 'qweatherApiKey', 'qweatherApiHost', 'lang'];
+  if (settingsModal.style.display === 'flex' && (event.key === null || editableKeys.includes(event.key))) { invalidateSettings(); return; }
+  if (event.key === 'siteData' || event.key === null) { loadSiteData(); renderMainPageGroups(); }
+  if (event.key === 'enginesData' || event.key === null) { loadEnginesData(); renderEngineDropdown(); setSearchEngine(appStorage.getItem('searchEngine')); }
   if (event.key === 'theme') applyTheme(appStorage.getItem('theme') || 'light');
   if (event.key === 'lang') { currentLang = appStorage.getItem('lang') || 'zh'; updateAllTexts(); }
   if (event.key === 'userName') { renderUsernameSection(); updateGreeting(); }
   if (event.key === 'searchEngine') { setSearchEngine(appStorage.getItem('searchEngine')); renderEngineDropdown(); }
   if (['qweatherApiKey', 'qweatherApiHost', 'weatherLocationData'].includes(event.key)) { renderApiKeySection(); initWeather(); }
 });
-window.addEventListener('pagehide', () => { groupStore.flush(); engineStore.flush(); });
+window.addEventListener('pagehide', () => {
+  if (!settingsStale) { groupStore.flush(); engineStore.flush(); }
+  releaseSettingsLock?.(); releaseSettingsLock = null;
+});
 
 function initTheme() { const stored = appStorage.getItem('theme') || 'light'; applyTheme(stored); }
 function scheduleIdleTask(fn) {
@@ -172,9 +183,9 @@ function init() {
   scheduleIdleTask(() => initWeather());
 }
 function loadSiteData() { siteData = groupStore.load(); }
-function saveSiteData(immediate = true) { return groupStore.save(siteData, immediate); }
+function saveSiteData(immediate = true) { return !settingsStale && groupStore.save(siteData, immediate); }
 function loadEnginesData() { enginesData = engineStore.load(); }
-function saveEnginesData(immediate = true) { return engineStore.save(enginesData, immediate); }
+function saveEnginesData(immediate = true) { return !settingsStale && engineStore.save(enginesData, immediate); }
 
 function normalizeLinkUrl(value) { return StartPageData.linkUrl(value); }
 let groupsRenderSignature = '';
@@ -222,19 +233,10 @@ function formatLocation(location) {
   const parts = [location.name, location.adm2, location.adm1, location.country].filter(Boolean);
   return [...new Set(parts)].join(', ');
 }
-function weatherLocationValue(location) {
-  return location?.id || location?.location || location?.name || '';
-}
-function locationLookupValue(location) {
-  if (typeof location === 'string') return location.trim();
-  if (location?.lon != null && location?.lat != null) return `${location.lon},${location.lat}`;
-  return (location?.location || location?.name || '').trim();
-}
 function qweatherLang() {
   return currentLang === 'zh' ? 'zh-hans' : 'en';
 }
 const weatherClient = StartPageWeather.create({ storage: appStorage, getKey: getApiKey, getLang: qweatherLang, getHost: () => appStorage.getItem('qweatherApiHost') || '' });
-async function fetchJson(url, timeout = 8000) { return StartPageWeather.json(url, { timeout }); }
 async function lookupLocations(query, number = 6, signal) { return weatherClient.lookup(query, number, signal); }
 function initWeather() {
   weatherClient.cancel();
@@ -419,7 +421,7 @@ function debounce(fn, delay) {
 }
 function getFocusableElements(container) {
   return [...container.querySelectorAll('a[href], button:not([disabled]), input:not([disabled]), select:not([disabled]), textarea:not([disabled]), [tabindex]:not([tabindex="-1"])')]
-    .filter(el => el.offsetParent !== null || el === document.activeElement);
+    .filter(el => !el.matches(':disabled') && (el.offsetParent !== null || el === document.activeElement));
 }
 const modalStack = [];
 function getActiveModal() {
@@ -483,7 +485,7 @@ function customConfirm(m) { return new Promise(res => { customConfirmMessage.tex
 function customInput(title, initial = '') {
   return new Promise(resolve => {
     customInputTitle.textContent = title;
-  customInputValue.maxLength = StartPageData.limits.text;
+    customInputValue.maxLength = StartPageData.limits.text;
     customInputValue.value = initial;
     openModal(customInputModal, customInputValue);
     const finish = value => { closeModal(customInputModal); resolve(value); };
@@ -565,10 +567,30 @@ useCurrentLocationBtn.onclick = () => {
     { enableHighAccuracy: false, timeout: 10000, maximumAge: 300000 }
   );
 };
-settingsIcon.onclick = async () => { await renderSettingsGroups(); openModal(settingsModal, settingsGroupsContainer.querySelector('input, button') || settingsCloseButton); };
+settingsIcon.onclick = async () => {
+  if (openingSettings || settingsModal.style.display === 'flex') return;
+  openingSettings = true;
+  try {
+    if (!await acquireSettingsLock()) { customNotice(t('settingsBusy')); return; }
+    settingsStale = false;
+    document.getElementById('settings-editor').disabled = false;
+    document.getElementById('langToggleBtnSettings').disabled = false;
+    loadSiteData(); loadEnginesData(); updateAllTexts();
+    await renderSettingsGroups();
+    openModal(settingsModal, settingsGroupsContainer.querySelector('input, button') || settingsCloseButton);
+  } catch {
+    releaseSettingsLock?.(); releaseSettingsLock = null;
+    customNotice(t('importFailed'));
+  } finally { openingSettings = false; }
+};
 settingsCloseButton.onclick = () => {
-  if (!groupStore.flush() || !engineStore.flush()) return;
-  setApiKeyVisible(false); closeModal(settingsModal); renderMainPageGroups();
+  if (!settingsStale && (!groupStore.flush() || !engineStore.flush())) return;
+  groupStore.cancel(); engineStore.cancel();
+  setApiKeyVisible(false); closeModal(settingsModal);
+  releaseSettingsLock?.(); releaseSettingsLock = null;
+  settingsStale = false;
+  loadSiteData(); loadEnginesData(); renderMainPageGroups(); renderEngineDropdown();
+  currentLang = appStorage.getItem('lang') || 'zh'; updateAllTexts();
 };
 closeOnBackdropClick(settingsModal, () => settingsCloseButton.onclick());
 document.getElementById('langToggleBtnSettings').onclick = () => { currentLang = currentLang === 'zh' ? 'en' : 'zh'; appStorage.setItem('lang', currentLang); updateAllTexts(); initWeather(); };
@@ -618,7 +640,6 @@ addNewGroupBtn.addEventListener('click', async () => {
 document.getElementById('editEnginesBtn').addEventListener('click', editEngines);
 
 async function editEngines() {
-  settingsView = { kind: 'engines' };
   document.querySelector('.group-color-field')?.remove();
   await ensureSortable();
   settingsTitle.textContent = t('customEngine'); settingsActions.style.display = 'none'; globalSettingsSection.style.display = 'none'; document.getElementById('langToggleBtnSettings').style.display = 'none';
@@ -694,8 +715,6 @@ function renderEnginePresetSuggestions(query, container, onSelect) {
 
 function editSingleEngine(engineId, onBack) {
   const eng = enginesData.find(item => item.id === engineId) || { id: StartPageData.id(), name: '', url: '', icon: 'search' };
-  const originalEngine = engineId ? JSON.stringify(eng) : null;
-  settingsView = { kind: 'engine-draft', id: engineId };
   settingsTitle.textContent = engineId ? t('editEngine', {name: eng.name}) : t('newEngine'); document.getElementById('langToggleBtnSettings').style.display = 'none';
   settingsGroupsContainer.innerHTML = '';
   const form = document.createElement('div'); form.className = 'settings-form-stack';
@@ -746,17 +765,16 @@ function editSingleEngine(engineId, onBack) {
     if (exactPreset) name = exactPreset.name;
     const i = preset?.icon || iconForEngine(name, url);
     const idx = enginesData.findIndex(item => item.id === eng.id);
-    if (engineId && idx < 0) { customNotice(t('storageConflict')); return; }
-    if (engineId && JSON.stringify(enginesData[idx]) !== originalEngine && !await customConfirm(t('storageConflict'))) { settingsView = { kind: 'engines' }; onBack(); return; }
+    if (engineId && idx < 0) { customNotice(t('settingsChanged')); return; }
     const updated = { ...eng, name, url, icon: i };
     if (idx < 0) {
       if (enginesData.length >= StartPageData.limits.engines) { customNotice(t('engineLimit', { limit: StartPageData.limits.engines })); return; }
       enginesData.push(updated);
     } else enginesData[idx] = updated;
     saveEnginesData(); renderEngineDropdown(); if (appStorage.getItem('searchEngine') === eng.id) setSearchEngine(eng.id);
-    settingsView = { kind: 'engines' }; onBack();
+    onBack();
   };
-  document.getElementById('backFromSingleEng').onclick = () => { settingsView = { kind: 'engines' }; onBack(); };
+  document.getElementById('backFromSingleEng').onclick = () => { onBack(); };
   setTimeout(() => { nameInput.focus({ preventScroll: true }); nameInput.select(); }, 0);
 }
 
@@ -802,7 +820,6 @@ function enableKeyboardSorting(container, items, onChange) {
   });
 }
 async function renderSettingsGroups() {
-  settingsView = { kind: 'groups' };
   updateSettingsStatus();
   document.querySelector('.group-color-field')?.remove();
   settingsTitle.textContent = t('settings'); globalSettingsSection.style.display = "flex"; settingsActions.style.display = "flex"; document.getElementById('langToggleBtnSettings').style.display = 'flex';
@@ -852,7 +869,6 @@ async function editGroup(group) {
   if (!groupStore.flush()) return;
   group = siteData.find(item => item.id === group.id);
   if (!group) return renderSettingsGroups();
-  settingsView = { kind: 'group', id: group.id };
   await ensureSortable();
   const g = group;
   settingsTitle.textContent = ''; globalSettingsSection.style.display = "none"; settingsActions.style.display = "none"; document.getElementById('langToggleBtnSettings').style.display = 'none';
@@ -946,7 +962,7 @@ function createConfigSnapshot(withApiKey = false) {
   return { schemaVersion: 2, exportedAt: new Date().toISOString(), settings };
 }
 function exportConfig(withApiKey = false) {
-  if (!groupStore.flush() || !engineStore.flush()) return false;
+  if (settingsStale || !groupStore.flush() || !engineStore.flush()) return false;
   let source;
   try { source = StartPageData.serializeBackup(createConfigSnapshot(withApiKey)); }
   catch (error) {
@@ -959,13 +975,12 @@ function exportConfig(withApiKey = false) {
   setTimeout(() => URL.revokeObjectURL(link.href), 1000);
   return true;
 }
-function validateImportedSettings(data) { return StartPageData.importSettings(data); }
 async function importConfig(file) {
   try {
     if (file.size > StartPageData.limits.fileBytes) throw Error('backupTooLarge');
     const settings = StartPageData.parseBackup(await file.text());
     if (!await customConfirm(t('importConfirm'))) return;
-    if (!groupStore.flush() || !engineStore.flush()) return;
+    if (settingsStale || !groupStore.flush() || !engineStore.flush()) return;
     for (const [key, value] of Object.entries(settings)) appStorage.setItem(key, value);
     clearWeatherCache();
     loadSiteData(); loadEnginesData();
@@ -986,6 +1001,59 @@ cancelExportBtn.onclick = () => closeModal(exportConfigModal);
 closeOnBackdropClick(exportConfigModal, () => cancelExportBtn.click());
 importConfigBtn.onclick = () => importConfigInput.click();
 importConfigInput.onchange = () => { const file = importConfigInput.files[0]; if (file) importConfig(file); importConfigInput.value = ''; };
+
+/* First-visit flow is independent of settings and weather requests. */
+function delay(ms) { return new Promise(resolve => setTimeout(resolve, ms)); }
+let welcomeFinishing = false;
+async function finishWelcome(name, skipGreeting = false) {
+  if (welcomeFinishing) return;
+  welcomeFinishing = true;
+  appStorage.setItem('userName', name);
+  appStorage.setItem('hasVisited', 'true');
+  updateGreeting(); renderUsernameSection();
+  const overlay = document.getElementById('welcome-overlay');
+  const inputContainer = document.getElementById('welcome-input-container');
+  const greetingContainer = document.getElementById('welcome-greeting-container');
+  const reduced = reducedMotionQuery.matches;
+  inputContainer.style.opacity = '0';
+  inputContainer.style.transform = 'translateY(-30px)';
+  await delay(reduced ? 0 : 500);
+  inputContainer.style.display = 'none';
+  if (!skipGreeting) {
+    document.getElementById('welcome-greeting-text').textContent = greeting.textContent;
+    greetingContainer.style.opacity = '1';
+    greetingContainer.style.transform = 'translateY(0)';
+    await delay(1500);
+    greetingContainer.style.opacity = '0';
+    greetingContainer.style.transform = 'translateY(-30px)';
+    await delay(reduced ? 0 : 400);
+  }
+  overlay.style.opacity = '0';
+  document.documentElement.classList.add('do-reveal');
+  document.documentElement.classList.remove('is-first-visit');
+  await delay(reduced ? 0 : 800);
+  overlay.style.display = 'none';
+  searchInput.focus();
+  document.getElementById('floating-controls').classList.add('is-discoverable');
+  setTimeout(() => document.getElementById('floating-controls').classList.remove('is-discoverable'), 6000);
+  await delay(reduced ? 0 : 500);
+  document.documentElement.classList.remove('do-reveal');
+}
+function handleFirstVisit() {
+  if (appStorage.getItem('hasVisited')) return;
+  const overlay = document.getElementById('welcome-overlay');
+  const input = document.getElementById('welcome-name-input');
+  const skip = document.getElementById('welcome-skip');
+  overlay.style.display = 'flex';
+  setTimeout(() => input.focus(), 0);
+  skip.textContent = t('welcomeSkip');
+  input.onkeydown = e => {
+    if (e.isComposing) return;
+    if (e.key === 'Enter') finishWelcome(input.value.trim());
+    if (e.key === 'Escape') finishWelcome('', true);
+  };
+  skip.onclick = () => finishWelcome('', true);
+}
 
 let lastRefresh = Date.now();
 const getGreetingPeriod = () => [5, 9, 12, 18, 22, 24].findIndex(end => new Date().getHours() < end);
