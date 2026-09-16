@@ -528,6 +528,15 @@ function closeInlineLocationEditor() {
   weatherLocationEditor.hidden = true;
   document.getElementById('weatherLocationBtn').setAttribute('aria-expanded', 'false');
 }
+function setSettingsBack(onBack) {
+  settingsBackButton.hidden = false;
+  document.getElementById('langToggleBtnSettings').style.display = 'none';
+  settingsBackButton.onclick = async () => {
+    await onBack();
+    settingsModal.querySelector('.modal-content').scrollTop = 0;
+    (settingsBackButton.hidden ? settingsGroupsContainer.querySelector('input, button') : settingsBackButton)?.focus({ preventScroll: true });
+  };
+}
 function showWeatherSettings() {
   if (settingsStale || !groupStore.flush()) return;
   document.querySelector('.group-color-field')?.remove();
@@ -535,18 +544,15 @@ function showWeatherSettings() {
   settingsGroupsContainer.style.display = 'none';
   globalSettingsSection.style.display = 'none'; settingsActions.style.display = 'none';
   weatherSettingsPage.hidden = false; settingsBackButton.hidden = false;
-  document.getElementById('langToggleBtnSettings').style.display = 'flex';
+  setSettingsBack(async () => {
+    closeInlineLocationEditor(); setApiKeyVisible(false);
+    await renderSettingsGroups();
+  });
   settingsTitle.textContent = t('weatherSettings');
   renderApiKeySection(); updateSettingsStatus(); setApiKeyVisible(false);
   settingsModal.querySelector('.modal-content').scrollTop = 0;
   document.getElementById('weatherLocationBtn').focus({ preventScroll: true });
 }
-settingsBackButton.onclick = async () => {
-  closeInlineLocationEditor(); setApiKeyVisible(false);
-  await renderSettingsGroups();
-  settingsModal.querySelector('.modal-content').scrollTop = 0;
-  document.getElementById('weatherSettingsBtn').focus({ preventScroll: true });
-};
 document.getElementById('weatherSettingsBtn').onclick = showWeatherSettings;
 document.getElementById('weatherLocationBtn').onclick = () => {
   if (!weatherLocationEditor.hidden) { closeInlineLocationEditor(); return; }
@@ -703,6 +709,8 @@ async function editEngines() {
   await ensureSortable();
   settingsTitle.textContent = t('customEngine'); settingsActions.style.display = 'none'; globalSettingsSection.style.display = 'none'; document.getElementById('langToggleBtnSettings').style.display = 'none';
   const renderEngineList = () => {
+    settingsTitle.textContent = t('customEngine');
+    setSettingsBack(() => { saveEnginesData(); renderEngineDropdown(); setSearchEngine(appStorage.getItem('searchEngine') || enginesData[0]?.id); return renderSettingsGroups(); });
     settingsGroupsContainer.innerHTML = '';
     enginesData.forEach((eng, idx) => {
       const d = document.createElement('div'); d.className = 'setting-item group-item';
@@ -716,11 +724,9 @@ async function editEngines() {
     });
     const actions = document.createElement('div'); actions.className = 'settings-inline-actions';
     const addEngBtn = document.createElement('button'); addEngBtn.id = 'addEngBtn'; addEngBtn.className = 'btn btn-primary'; addEngBtn.append(createIcon('plus'), document.createTextNode(` ${t('newEngine')}`));
-    const backFromEng = document.createElement('button'); backFromEng.id = 'backFromEng'; backFromEng.className = 'btn btn-secondary'; backFromEng.textContent = t('back');
-    actions.replaceChildren(addEngBtn, backFromEng);
+    actions.replaceChildren(addEngBtn);
     settingsGroupsContainer.appendChild(actions);
     document.getElementById('addEngBtn').onclick = () => editSingleEngine(null, renderEngineList);
-    document.getElementById('backFromEng').onclick = () => { saveEnginesData(); renderEngineDropdown(); setSearchEngine(appStorage.getItem('searchEngine') || enginesData[0]?.id); renderSettingsGroups(); };
     if (sortableInst) sortableInst.destroy();
     sortableInst = makeSortable(settingsGroupsContainer, {
       handle: '.handle', animation: reducedMotionQuery.matches ? 0 : 150,
@@ -729,7 +735,7 @@ async function editEngines() {
       ghostClass: 'sortable-ghost',
       chosenClass: 'sortable-chosen',
       draggable: '.group-item',
-      filter: '#addEngBtn, #backFromEng',
+      filter: '#addEngBtn',
       onEnd: e => { const item = enginesData.splice(e.oldDraggableIndex, 1)[0]; enginesData.splice(e.newDraggableIndex, 0, item); saveEnginesData(); renderEngineDropdown(); renderEngineList(); }
     });
     enableKeyboardSorting(settingsGroupsContainer, enginesData, () => { saveEnginesData(); renderEngineDropdown(); renderEngineList(); });
@@ -773,6 +779,7 @@ function renderEnginePresetSuggestions(query, container, onSelect) {
 }
 
 function editSingleEngine(engineId, onBack) {
+  setSettingsBack(onBack);
   const eng = enginesData.find(item => item.id === engineId) || { id: StartPageData.id(), name: '', url: '', icon: 'search' };
   settingsTitle.textContent = engineId ? t('editEngine', {name: eng.name}) : t('newEngine'); document.getElementById('langToggleBtnSettings').style.display = 'none';
   settingsGroupsContainer.innerHTML = '';
@@ -791,8 +798,7 @@ function editSingleEngine(engineId, onBack) {
   form.append(nameField, urlField);
   const actions = document.createElement('div'); actions.className = 'settings-actions-stack';
   const saveBtn = document.createElement('button'); saveBtn.id = 'saveEngBtn'; saveBtn.className = 'btn btn-primary'; saveBtn.append(createIcon('check'), document.createTextNode(` ${t('save')}`));
-  const backBtn = document.createElement('button'); backBtn.id = 'backFromSingleEng'; backBtn.className = 'btn btn-secondary'; backBtn.textContent = t('back');
-  actions.append(saveBtn, backBtn);
+  actions.append(saveBtn);
   settingsGroupsContainer.append(form, actions);
   const selectEnginePreset = preset => {
     nameInput.value = preset.name;
@@ -833,7 +839,6 @@ function editSingleEngine(engineId, onBack) {
     saveEnginesData(); renderEngineDropdown(); if (appStorage.getItem('searchEngine') === eng.id) setSearchEngine(eng.id);
     onBack();
   };
-  document.getElementById('backFromSingleEng').onclick = () => { onBack(); };
   setTimeout(() => { nameInput.focus({ preventScroll: true }); nameInput.select(); }, 0);
 }
 
@@ -933,6 +938,7 @@ async function editGroup(group) {
   if (!group) return renderSettingsGroups();
   await ensureSortable();
   const g = group;
+  setSettingsBack(renderSettingsGroups);
   settingsTitle.textContent = ''; globalSettingsSection.style.display = "none"; settingsActions.style.display = "none"; document.getElementById('langToggleBtnSettings').style.display = 'none';
   settingsGroupsContainer.innerHTML = '';
   document.querySelector('.group-color-field')?.remove();
@@ -951,8 +957,7 @@ async function editGroup(group) {
   const list = document.createElement('div'); list.id = 'l-list'; list.className = 'link-list';
   const actions = document.createElement('div'); actions.className = 'settings-inline-actions';
   const addBtn = document.createElement('button'); addBtn.id = 'addL'; addBtn.className = 'btn btn-primary'; addBtn.append(createIcon('plus'), document.createTextNode(` ${t('addNewLink')}`));
-  const backBtn = document.createElement('button'); backBtn.id = 'backG'; backBtn.className = 'btn btn-secondary'; backBtn.textContent = t('back');
-  actions.append(addBtn, backBtn);
+  actions.append(addBtn);
   settingsGroupsContainer.append(list, actions);
   const render = () => {
     list.innerHTML = '';
@@ -1003,7 +1008,6 @@ async function editGroup(group) {
     if (siteData.reduce((sum, item) => sum + item.links.length, 0) >= StartPageData.limits.links) { customNotice(t('linkLimit', { limit: StartPageData.limits.links })); return; }
     g.links.push({id: StartPageData.id(), name:'', url:''}); saveSiteData(); render();
   };
-  document.getElementById('backG').onclick = renderSettingsGroups;
 }
 
 function createConfigSnapshot(withApiKey = false) {

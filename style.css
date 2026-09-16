@@ -431,7 +431,8 @@ input[type="text"]:focus, input[type="url"]:focus { outline: none; }
 .modal-header h2 { margin: 0; font-size: 1.2rem; color: var(--text-color); font-weight: 600; }
 
 .settings-heading { display: flex; align-items: center; gap: 6px; min-width: 0; }
-#settings-back-button { border: 0; border-radius: 6px; flex-shrink: 0; font-size: 28px; }
+#settings-back-button { border: 0; border-radius: 6px; flex-shrink: 0; }
+#settings-back-button svg { display: block; flex-shrink: 0; }
 #settings-back-button[hidden] { display: none; }
 .settings-entry { width: 100%; font: inherit; font-size: 0.95rem; color: var(--text-gray); text-align: left; cursor: pointer; }
 .settings-entry > .ui-icon { color: var(--text-light); width: 20px; flex-shrink: 0; }

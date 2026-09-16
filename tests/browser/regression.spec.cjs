@@ -59,13 +59,13 @@ test('reordering edits the correct engine, cancelling drafts saves nothing, inva
   await page.mouse.move(to.x + 8, to.y + to.height - 2, { steps: 20 }); await page.mouse.up();
   const name = await page.locator('.engine-name').first().textContent();
   await page.locator('.edit-eng-btn').first().click(); await expect(page.locator('#engEditName')).toHaveValue(name);
-  await page.locator('#backFromSingleEng').click();
+  await page.locator('#settings-back-button').click();
   const count = await page.locator('.engine-name').count();
-  await page.locator('#addEngBtn').click(); await page.locator('#backFromSingleEng').click();
+  await page.locator('#addEngBtn').click(); await page.locator('#settings-back-button').click();
   await expect(page.locator('.engine-name')).toHaveCount(count);
   await page.locator('.del-eng-btn').first().click(); await page.locator('#confirm-yes').click();
   expect(await page.locator('.engine-name').allTextContents()).not.toContain(name);
-  await page.locator('#backFromEng').click(); await page.locator('.edit-btn').first().click();
+  await page.locator('#settings-back-button').click(); await page.locator('.edit-btn').first().click();
   const field = page.locator('.link-url-input').first(); const before = await field.inputValue();
   await field.fill('javascript:alert(1)'); await page.locator('#settings-title').click();
   await expect(field).toHaveValue('javascript:alert(1)'); await expect(field).toHaveAttribute('aria-invalid', 'true');
@@ -133,9 +133,9 @@ test('late weather results cannot overwrite a newer city', async ({ page }) => {
   await page.locator('#saveLocationBtn').click();
   await expect(page.locator('#weather-location-editor')).not.toBeVisible();
   await expect(page.locator('#weatherLocationSummary')).toHaveText('Inline City');
-  await page.locator('#langToggleBtnSettings').click();
-  await expect(page.locator('#settings-title')).toHaveText('Weather settings');
+  await expect(page.locator('#langToggleBtnSettings')).not.toBeVisible();
   await page.locator('#settings-back-button').click();
+  await page.locator('#langToggleBtnSettings').click();
   await expect(page.locator('#settings-title')).toHaveText('Settings');
   await expect(page.locator('#weatherSettingsSummary')).toHaveText('Inline City');
   await page.locator('#settings-close-button').click();
