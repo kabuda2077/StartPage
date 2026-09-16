@@ -1,24 +1,20 @@
 #!/bin/bash
-# Build single-file StartPage.html from index.html + style.css + script.js
+# Build a self-contained StartPage.html from local project resources.
 
-set -e
+set -euo pipefail
 
 SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
 cd "$SCRIPT_DIR"
 
 OUTPUT="StartPage.html"
-SORTABLE_SRC="https://cdn.jsdelivr.net/npm/sortablejs@1.15.0/Sortable.min.js"
+STARTPAGE_CSS=$(<style.css)
+STARTPAGE_JS=$(<script.js)
 
-CSS=$(<style.css)
-STARTPAGE_CSS=${CSS//"assets/fonts/JetBrainsMono-400.woff2"/"https://cdn.jsdelivr.net/npm/jetbrains-mono@1.0.6/fonts/webfonts/JetBrainsMono-Regular.woff2"}
-STARTPAGE_CSS=${STARTPAGE_CSS//"assets/fonts/JetBrainsMono-500.woff2"/"https://cdn.jsdelivr.net/npm/jetbrains-mono@1.0.6/fonts/webfonts/JetBrainsMono-Medium.woff2"}
-STARTPAGE_CSS=${STARTPAGE_CSS//"assets/fonts/JetBrainsMono-600.woff2"/"https://cdn.jsdelivr.net/npm/jetbrains-mono@1.0.6/fonts/webfonts/JetBrainsMono-SemiBold.woff2"}
-STARTPAGE_CSS=${STARTPAGE_CSS//"assets/fonts/JetBrainsMono-700.woff2"/"https://cdn.jsdelivr.net/npm/jetbrains-mono@1.0.6/fonts/webfonts/JetBrainsMono-Bold.woff2"}
-JS=$(<script.js)
-STARTPAGE_JS=${JS//"script.src = 'Sortable.min.js';"/"script.src = '$SORTABLE_SRC';"}
-STARTPAGE_JS=${STARTPAGE_JS//"Failed to load Sortable.min.js"/"Failed to load Sortable from CDN"}
-
-# Keep preset icons self-contained, including when opened outside the project folder.
+# Fonts and icons must work when the HTML is moved away from the project folder.
+for FONT_FILE in assets/fonts/*.woff2; do
+  FONT_DATA=$(base64 < "$FONT_FILE" | tr -d '\r\n')
+  STARTPAGE_CSS=${STARTPAGE_CSS//"$FONT_FILE"/"data:font/woff2;base64,$FONT_DATA"}
+done
 for ICON_FILE in assets/engine-icons/*.ico assets/engine-icons/*.svg; do
   [ -f "$ICON_FILE" ] || continue
   case "$ICON_FILE" in
@@ -38,30 +34,16 @@ done
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Start Page</title>
   <script>
-    (() => {
-      const root = document.documentElement;
-      if (!localStorage.getItem('hasVisited')) root.classList.add('is-first-visit');
-      if (localStorage.getItem('theme') === 'dark') root.classList.add('dark-mode');
-    })();
-  </script>
 EOF
+  cat boot.js
+  printf '\n  </script>\n  <style>\n%s\n  </style>\n</head>\n' "$STARTPAGE_CSS"
 
-  echo "  <script src=\"$SORTABLE_SRC\"></script>"
-  echo ""
-  echo "  <style>"
-  echo "$STARTPAGE_CSS"
-  echo "  </style>"
-  echo "</head>"
-
-  # Extract body (from <body> to </body> inclusive)
+  # Preserve the same UI as the extension version.
   sed -n '/<body>/,/<\/body>/p' index.html | sed '/<\/body>/d'
 
-  # Inline JS before closing body
-  echo "  <script>"
-  echo "$STARTPAGE_JS"
-  echo "  </script>"
-  echo "</body>"
-  echo "</html>"
+  printf '  <script>\n'
+  cat Sortable.min.js
+  printf '\n  </script>\n  <script>\n%s\n  </script>\n</body>\n</html>\n' "$STARTPAGE_JS"
 } > "$OUTPUT"
 
 echo "Built $OUTPUT ($(wc -l < "$OUTPUT") lines)"

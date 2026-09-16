@@ -1,3 +1,4 @@
+const appStorage = window.startPageStorage;
 const i18n = {
   zh: {
     backup: "配置备份", includeApiKey: "包含天气 API Key", exportKeyHint: "勾选后，导出的文件将包含明文 Key。", showApiKey: "显示 API Key", hideApiKey: "隐藏 API Key",
@@ -37,7 +38,7 @@ const i18n = {
   }
 };
 
-let currentLang = localStorage.getItem('lang') || 'zh';
+let currentLang = appStorage.getItem('lang') || 'zh';
 const reducedMotionQuery = window.matchMedia('(prefers-reduced-motion: reduce)');
 function t(key, params) {
   let text = i18n[currentLang][key] || key;
@@ -215,10 +216,10 @@ themeToggleBtn.addEventListener('click', (e) => {
   const x = e.clientX || window.innerWidth / 2; const y = e.clientY || window.innerHeight / 2;
   document.documentElement.style.setProperty('--click-x', `${x}px`);
   document.documentElement.style.setProperty('--click-y', `${y}px`);
-  if (reducedMotionQuery.matches || !document.startViewTransition) { localStorage.setItem('theme', newTheme); applyTheme(newTheme); return; }
+  if (reducedMotionQuery.matches || !document.startViewTransition) { appStorage.setItem('theme', newTheme); applyTheme(newTheme); return; }
   const transitionClass = isDark ? 'theme-transition-shrink' : 'theme-transition-expand';
   document.documentElement.classList.add(transitionClass);
-  const transition = document.startViewTransition(() => { localStorage.setItem('theme', newTheme); applyTheme(newTheme); });
+  const transition = document.startViewTransition(() => { appStorage.setItem('theme', newTheme); applyTheme(newTheme); });
   transition.finished.finally(() => { document.documentElement.classList.remove('theme-transition-expand', 'theme-transition-shrink'); });
 });
 
@@ -258,8 +259,8 @@ function updateAllTexts() {
   renderApiKeySection();
 }
 
-function getApiKey() { return localStorage.getItem('qweatherApiKey') || ''; }
-function getUserName() { return localStorage.getItem('userName') || ''; }
+function getApiKey() { return appStorage.getItem('qweatherApiKey') || ''; }
+function getUserName() { return appStorage.getItem('userName') || ''; }
 
 let siteData = [
   { title: "media", color: "#e63946", links: [ { name: "Bilibili", url: "https://www.bilibili.com" }, { name: "Rednote", url: "https://www.xiaohongshu.com" }, { name: "YouTube", url: "https://www.youtube.com" }, { name: "ZLibrary", url: "https://z-library.sk" } ] },
@@ -320,7 +321,7 @@ const importConfigInput = document.getElementById('importConfigInput');
 const DEFAULT_ENGINES = ['google', 'duckduckgo', 'baidu'].map(key => engineFromPreset(ENGINE_PRESETS.find(preset => preset.key === key)));
 let enginesData = [];
 
-function initTheme() { const stored = localStorage.getItem('theme') || 'light'; applyTheme(stored); }
+function initTheme() { const stored = appStorage.getItem('theme') || 'light'; applyTheme(stored); }
 function scheduleIdleTask(fn) {
   if (window.requestIdleCallback) {
     return window.requestIdleCallback(fn, { timeout: 1500 });
@@ -336,12 +337,12 @@ function init() {
   updateGreeting();
   renderMainPageGroups();
   renderEngineDropdown();
-  setSearchEngine(localStorage.getItem('searchEngine') || enginesData[0]?.id || 'google');
+  setSearchEngine(appStorage.getItem('searchEngine') || enginesData[0]?.id || 'google');
   handleFirstVisit();
   scheduleIdleTask(() => initWeather());
 }
 function loadSiteData() {
-  const stored = localStorage.getItem('siteData');
+  const stored = appStorage.getItem('siteData');
   try {
     const parsed = stored ? JSON.parse(stored) : null;
     if (!Array.isArray(parsed)) return;
@@ -350,18 +351,18 @@ function loadSiteData() {
       color: /^#[0-9a-f]{6}$/i.test(group?.color) ? group.color : '#ffa726',
       links: Array.isArray(group?.links) ? group.links.map(link => ({ name: String(link?.name || ''), url: String(link?.url || '') })) : []
     }));
-  } catch (e) { localStorage.removeItem('siteData'); }
+  } catch (e) { appStorage.removeItem('siteData'); }
 }
-function saveSiteData() { localStorage.setItem('siteData', JSON.stringify(siteData)); }
+function saveSiteData() { appStorage.setItem('siteData', JSON.stringify(siteData)); }
 function loadEnginesData() {
-  const stored = localStorage.getItem('enginesData');
+  const stored = appStorage.getItem('enginesData');
   try {
     const parsed = stored ? JSON.parse(stored) : null;
     enginesData = Array.isArray(parsed) ? parsed.filter(e => e && e.id && e.name && e.url) : JSON.parse(JSON.stringify(DEFAULT_ENGINES));
   } catch (e) { enginesData = JSON.parse(JSON.stringify(DEFAULT_ENGINES)); }
   if (!enginesData.length) enginesData = JSON.parse(JSON.stringify(DEFAULT_ENGINES));
 }
-function saveEnginesData() { localStorage.setItem('enginesData', JSON.stringify(enginesData)); }
+function saveEnginesData() { appStorage.setItem('enginesData', JSON.stringify(enginesData)); }
 
 function normalizeLinkUrl(value) {
   const url = String(value || '').trim();
@@ -401,11 +402,11 @@ function setWeatherMessage(message, state = '') {
   weatherFeelsLike.style.display = weatherHighLow.style.display = 'none';
 }
 function getSavedWeatherLocation() {
-  const stored = localStorage.getItem('weatherLocationData');
+  const stored = appStorage.getItem('weatherLocationData');
   if (stored) {
-    try { return JSON.parse(stored); } catch(e) { localStorage.removeItem('weatherLocationData'); }
+    try { return JSON.parse(stored); } catch(e) { appStorage.removeItem('weatherLocationData'); }
   }
-  const legacyName = localStorage.getItem('weatherLocation');
+  const legacyName = appStorage.getItem('weatherLocation');
   return legacyName ? { name: legacyName, location: legacyName } : null;
 }
 function formatLocation(location) {
@@ -451,13 +452,13 @@ function initWeather() {
   else if (!loc) setWeatherMessage(t('clickToGetLoc'), 'is-prompt');
   else fetchWeatherData(loc);
 }
-function clearWeatherCache() { localStorage.removeItem('weatherCache'); }
+function clearWeatherCache() { appStorage.removeItem('weatherCache'); }
 async function fetchWeatherData(loc) {
   const apiKey = getApiKey();
   if (!apiKey) return;
   const WEATHER_CACHE_TTL = 10 * 60 * 1000;
   const fingerprint = apiKey.slice(-8);
-  const cached = localStorage.getItem('weatherCache');
+  const cached = appStorage.getItem('weatherCache');
   if (cached) {
     try {
       const entry = JSON.parse(cached);
@@ -471,8 +472,8 @@ async function fetchWeatherData(loc) {
     const selectedLocation = typeof loc === 'object' && loc.id ? loc : await lookupLocations(loc, 1).then(items => items[0]);
     if (!selectedLocation) throw new Error(t('weatherLocationMissing'));
     const locId = weatherLocationValue(selectedLocation);
-    localStorage.setItem('weatherLocationData', JSON.stringify(selectedLocation));
-    localStorage.setItem('weatherLocation', selectedLocation.name || locId);
+    appStorage.setItem('weatherLocationData', JSON.stringify(selectedLocation));
+    appStorage.setItem('weatherLocation', selectedLocation.name || locId);
     const [curr, fore] = await Promise.all([
       fetchJson(`https://devapi.qweather.com/v7/weather/now?location=${locId}&key=${apiKey}`),
       fetchJson(`https://devapi.qweather.com/v7/weather/3d?location=${locId}&key=${apiKey}`)
@@ -480,7 +481,7 @@ async function fetchWeatherData(loc) {
     if (curr.code !== '200' || fore.code !== '200' || !curr.now || !fore.daily?.[0]) throw new Error(t('weatherApiFailed'));
     const data = { temp: Math.round(curr.now.temp), feelsLike: Math.round(curr.now.feelsLike), tempMax: fore.daily[0].tempMax, tempMin: fore.daily[0].tempMin };
     applyWeatherData(data);
-    localStorage.setItem('weatherCache', JSON.stringify({ locationId: locId, apiKeyFingerprint: fingerprint, fetchedAt: Date.now(), data }));
+    appStorage.setItem('weatherCache', JSON.stringify({ locationId: locId, apiKeyFingerprint: fingerprint, fetchedAt: Date.now(), data }));
   } catch(e) {
     console.error(e);
     setWeatherMessage(e.message || t('weatherFailed'), 'is-error');
@@ -588,7 +589,7 @@ function setSearchEngine(id) {
   if (!eng) return;
   searchInput.placeholder = t('searchWith', {name: eng.name});
   setEngineIcon(currentEngineIcon, eng.icon);
-  localStorage.setItem('searchEngine', eng.id);
+  appStorage.setItem('searchEngine', eng.id);
 }
 function renderEngineDropdown() {
   engineList.innerHTML = '';
@@ -599,7 +600,7 @@ function renderEngineDropdown() {
     label.textContent = eng.name;
     li.tabIndex = -1;
     li.setAttribute('role', 'option');
-    li.setAttribute('aria-selected', String(localStorage.getItem('searchEngine') === eng.id));
+    li.setAttribute('aria-selected', String(appStorage.getItem('searchEngine') === eng.id));
     li.append(createEngineIcon(eng.icon), label);
     li.onclick = (e) => { e.stopPropagation(); setSearchEngine(eng.id); renderEngineDropdown(); setEngineListOpen(false); searchInput.focus(); };
     li.onkeydown = e => {
@@ -754,10 +755,10 @@ useCurrentLocationBtn.onclick = () => {
 settingsIcon.onclick = async () => { await renderSettingsGroups(); openModal(settingsModal, settingsGroupsContainer.querySelector('input, button') || settingsCloseButton); };
 settingsCloseButton.onclick = () => { setApiKeyVisible(false); closeModal(settingsModal); saveSiteData(); renderMainPageGroups(); };
 closeOnBackdropClick(settingsModal, () => settingsCloseButton.onclick());
-document.getElementById('langToggleBtnSettings').onclick = () => { currentLang = currentLang === 'zh' ? 'en' : 'zh'; localStorage.setItem('lang', currentLang); updateAllTexts(); initWeather(); };
-document.getElementById('saveUsernameBtn').onclick = () => { localStorage.setItem('userName', document.getElementById('usernameInput').value.trim()); renderUsernameSection(); updateGreeting(); };
+document.getElementById('langToggleBtnSettings').onclick = () => { currentLang = currentLang === 'zh' ? 'en' : 'zh'; appStorage.setItem('lang', currentLang); updateAllTexts(); initWeather(); };
+document.getElementById('saveUsernameBtn').onclick = () => { appStorage.setItem('userName', document.getElementById('usernameInput').value.trim()); renderUsernameSection(); updateGreeting(); };
 document.getElementById('editUsernameBtn').onclick = () => { document.getElementById('username-saved-mode').style.display = 'none'; document.getElementById('username-edit-mode').style.display = 'flex'; };
-document.getElementById('saveApiKeyBtn').onclick = () => { localStorage.setItem('qweatherApiKey', apiKeyInput.value.trim()); setApiKeyVisible(false); clearWeatherCache(); initWeather(); renderApiKeySection(); };
+document.getElementById('saveApiKeyBtn').onclick = () => { appStorage.setItem('qweatherApiKey', apiKeyInput.value.trim()); setApiKeyVisible(false); clearWeatherCache(); initWeather(); renderApiKeySection(); };
 document.getElementById('editApiKeyBtn').onclick = () => { apiKeyInput.value = getApiKey(); setApiKeyVisible(false); document.getElementById('api-key-saved-mode').style.display = 'none'; document.getElementById('api-key-edit-mode').style.display = 'flex'; apiKeyInput.focus(); };
 
 function setEngineListOpen(open) {
@@ -782,7 +783,7 @@ searchForm.onsubmit = e => {
   const q = searchInput.value.trim();
   if (!q) return;
   if (isDirectNavigationTarget(q)) { window.open(/^https?:\/\//i.test(q) ? q : 'https://' + q, '_blank', 'noopener'); return; }
-  const eng = enginesData.find(item => item.id === localStorage.getItem('searchEngine')) || enginesData[0];
+  const eng = enginesData.find(item => item.id === appStorage.getItem('searchEngine')) || enginesData[0];
   window.open(eng.url.replace('{query}', encodeURIComponent(q)), '_blank', 'noopener');
 };
 
@@ -809,7 +810,7 @@ async function editEngines() {
       d.append(createIcon('bars', 'handle'), createEngineIcon(eng.icon, 'engine-icon'), name, editBtn, delBtn);
       settingsGroupsContainer.appendChild(d);
       d.querySelector('.edit-eng-btn').addEventListener('click', () => editSingleEngine(idx, renderEngineList));
-      d.querySelector('.del-eng-btn').addEventListener('click', async () => { if (enginesData.length <= 1) { customNotice(t('keepOneEngine')); return; } if (await customConfirm(t('delEngineConfirm', {name: eng.name}))) { enginesData.splice(idx, 1); saveEnginesData(); renderEngineDropdown(); if (localStorage.getItem('searchEngine') === eng.id) setSearchEngine(enginesData[0].id); renderEngineList(); } });
+      d.querySelector('.del-eng-btn').addEventListener('click', async () => { if (enginesData.length <= 1) { customNotice(t('keepOneEngine')); return; } if (await customConfirm(t('delEngineConfirm', {name: eng.name}))) { enginesData.splice(idx, 1); saveEnginesData(); renderEngineDropdown(); if (appStorage.getItem('searchEngine') === eng.id) setSearchEngine(enginesData[0].id); renderEngineList(); } });
     });
     const actions = document.createElement('div'); actions.className = 'settings-inline-actions';
     const addEngBtn = document.createElement('button'); addEngBtn.id = 'addEngBtn'; addEngBtn.className = 'btn btn-primary'; addEngBtn.append(createIcon('plus'), document.createTextNode(` ${t('customEngine')}`));
@@ -817,7 +818,7 @@ async function editEngines() {
     actions.replaceChildren(addEngBtn, backFromEng);
     settingsGroupsContainer.appendChild(actions);
     document.getElementById('addEngBtn').onclick = () => { const newId = 'custom_' + Date.now(); enginesData.push({ id: newId, name: 'New Engine', url: 'https://example.com/search?q={query}', icon: 'search' }); saveEnginesData(); renderEngineDropdown(); renderEngineList(); setTimeout(() => editSingleEngine(enginesData.length - 1, renderEngineList), 50); };
-    document.getElementById('backFromEng').onclick = () => { saveEnginesData(); renderEngineDropdown(); setSearchEngine(localStorage.getItem('searchEngine') || enginesData[0]?.id); renderSettingsGroups(); };
+    document.getElementById('backFromEng').onclick = () => { saveEnginesData(); renderEngineDropdown(); setSearchEngine(appStorage.getItem('searchEngine') || enginesData[0]?.id); renderSettingsGroups(); };
     if (sortableInst) sortableInst.destroy();
     sortableInst = new Sortable(settingsGroupsContainer, {
       handle: '.handle', animation: reducedMotionQuery.matches ? 0 : 150,
@@ -918,7 +919,7 @@ function editSingleEngine(idx, onBack) {
     const preset = exactPreset || findEnginePresetByUrl(url);
     if (exactPreset) name = exactPreset.name;
     const i = preset?.icon || iconForEngine(name, url);
-    enginesData[idx] = { ...eng, name, url, icon: i }; saveEnginesData(); renderEngineDropdown(); if (localStorage.getItem('searchEngine') === eng.id) setSearchEngine(eng.id); onBack();
+    enginesData[idx] = { ...eng, name, url, icon: i }; saveEnginesData(); renderEngineDropdown(); if (appStorage.getItem('searchEngine') === eng.id) setSearchEngine(eng.id); onBack();
   };
   document.getElementById('backFromSingleEng').onclick = onBack;
   setTimeout(() => { nameInput.focus({ preventScroll: true }); nameInput.select(); }, 0);
@@ -1045,7 +1046,7 @@ async function editGroup(group) {
 
 function createConfigSnapshot(withApiKey = false) {
   const location = getSavedWeatherLocation();
-  const activeEngine = enginesData.find(engine => engine.id === localStorage.getItem('searchEngine')) || enginesData[0];
+  const activeEngine = enginesData.find(engine => engine.id === appStorage.getItem('searchEngine')) || enginesData[0];
   const settings = {
     siteData: JSON.stringify(siteData),
     enginesData: JSON.stringify(enginesData),
@@ -1099,7 +1100,7 @@ async function importConfig(file) {
   try {
     const settings = validateImportedSettings(JSON.parse(await file.text()));
     if (!await customConfirm(t('importConfirm'))) return;
-    for (const [key, value] of Object.entries(settings)) localStorage.setItem(key, value);
+    for (const [key, value] of Object.entries(settings)) appStorage.setItem(key, value);
     clearWeatherCache(); location.reload();
   } catch (error) { customNotice(t('importFailed')); }
 }
@@ -1118,8 +1119,8 @@ let welcomeFinishing = false;
 async function finishWelcome(name, skipGreeting = false) {
   if (welcomeFinishing) return;
   welcomeFinishing = true;
-  localStorage.setItem('userName', name);
-  localStorage.setItem('hasVisited', 'true');
+  appStorage.setItem('userName', name);
+  appStorage.setItem('hasVisited', 'true');
   updateGreeting(); renderUsernameSection();
   const overlay = document.getElementById('welcome-overlay');
   const inputContainer = document.getElementById('welcome-input-container');
@@ -1148,7 +1149,7 @@ async function finishWelcome(name, skipGreeting = false) {
   document.documentElement.classList.remove('do-reveal');
 }
 function handleFirstVisit() {
-  if (localStorage.getItem('hasVisited')) return;
+  if (appStorage.getItem('hasVisited')) return;
   const overlay = document.getElementById('welcome-overlay');
   const input = document.getElementById('welcome-name-input');
   const skip = document.getElementById('welcome-skip');
