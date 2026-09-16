@@ -600,7 +600,6 @@ input[type="text"]:focus, input[type="url"]:focus { outline: none; }
 #settings-title .group-title-text { overflow-wrap: anywhere; }
 
 .settings-backup-section { border-top: 1px solid var(--card-border); padding-top: 16px; }
-.settings-backup-section h3 { margin: 0 0 12px; font-size: 0.8rem; font-weight: 500; color: var(--text-light); }
 #confirmExportBtn { flex: 1; }
 .export-key-option { display: flex; align-items: center; gap: 8px; text-align: left; font-size: 0.9rem; }
 .export-key-option input { accent-color: var(--accent-color); }

@@ -25,7 +25,7 @@ function updateAllTexts() {
   customNoticeClose.textContent = t('ok');
   exportConfigBtn.textContent = t('exportConfig');
   importConfigBtn.textContent = t('importConfig');
-  document.getElementById('backup-title').textContent = t('backup');
+  document.querySelector('.settings-backup-section').setAttribute('aria-label', t('backup'));
   document.getElementById('export-config-title').textContent = t('exportConfig');
   document.getElementById('include-api-key-label').textContent = t('includeApiKey');
   document.getElementById('export-key-hint').textContent = t('exportKeyHint');
@@ -947,13 +947,11 @@ async function editGroup(group) {
   colorField.title = colorLabel;
   const colorInput = document.createElement('input'); colorInput.type = 'color'; colorInput.value = g.color;
   colorInput.setAttribute('aria-label', colorLabel);
-  colorInput.oninput = e => { g.color = e.target.value; settingsTitle.querySelector('.ui-icon').style.color = g.color; saveSiteData(); renderMainPageGroups(); };
-  const folderIcon = createIcon('folder'); folderIcon.style.color = g.color;
-  folderIcon.setAttribute('aria-hidden', 'true');
+  colorInput.oninput = e => { g.color = e.target.value; saveSiteData(); renderMainPageGroups(); };
   colorField.appendChild(colorInput);
   settingsCloseButton.before(colorField);
   const titleText = document.createElement('span'); titleText.className = 'group-title-text'; titleText.textContent = g.title;
-  settingsTitle.append(folderIcon, titleText);
+  settingsTitle.append(titleText);
   const list = document.createElement('div'); list.id = 'l-list'; list.className = 'link-list';
   const actions = document.createElement('div'); actions.className = 'settings-inline-actions';
   const addBtn = document.createElement('button'); addBtn.id = 'addL'; addBtn.className = 'btn btn-primary'; addBtn.append(createIcon('plus'), document.createTextNode(` ${t('addNewLink')}`));
