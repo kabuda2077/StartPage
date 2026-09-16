@@ -8,9 +8,13 @@ function updateAllTexts() {
   document.getElementById('locationInput').placeholder = t('locPlaceholder');
   document.getElementById('saveLocationBtn').textContent = t('saveLoc');
   document.getElementById('useCurrentLocationBtn').textContent = t('useCurLoc');
-  document.getElementById('settings-title').textContent = t('settings');
+  document.getElementById('settings-title').textContent = weatherSettingsPage.hidden ? t('settings') : t('weatherSettings');
   document.getElementById('addNewGroupBtnText').textContent = t('addNewGroup');
-  document.getElementById('editEnginesBtnText').textContent = t('customEngine');
+  document.getElementById('editEnginesBtnText').textContent = t('searchSettings');
+  document.getElementById('weatherSettingsBtnText').textContent = t('weatherSettings');
+  document.getElementById('weatherLocationLabel').textContent = t('locationLabel');
+  settingsBackButton.setAttribute('aria-label', t('back')); settingsBackButton.title = t('back');
+  updateWeatherSummary();
   document.getElementById('usernameInput').placeholder = t('usernamePlaceholder');
   document.getElementById('apiKeyInput').placeholder = t('inputApiKey');
   document.getElementById('applyApiKeyText').innerHTML = t('applyApiKey');
@@ -83,6 +87,10 @@ const groupsContainer = document.querySelector(".groups");
 const settingsIcon = document.getElementById("settings-icon");
 const settingsModal = document.getElementById("settingsModal");
 const settingsCloseButton = document.getElementById("settings-close-button");
+const settingsBackButton = document.getElementById('settings-back-button');
+const weatherSettingsPage = document.getElementById('weather-settings-page');
+const weatherLocationEditor = document.getElementById('weather-location-editor');
+const locationFields = document.getElementById('location-fields');
 const settingsGroupsContainer = document.getElementById("settings-groups-container");
 const addNewGroupBtn = document.getElementById("addNewGroupBtn");
 const settingsTitle = document.getElementById("settings-title");
@@ -144,7 +152,8 @@ function acquireSettingsLock() {
 }
 function updateSettingsStatus() {
   const recovery = appStorage.getItem('siteData.recovery') || appStorage.getItem('enginesData.recovery');
-  document.getElementById('settings-status').textContent = settingsStale ? t('settingsChanged') : !appStorage.persistent ? t('storageTemporary') : recovery ? t('invalidConfig') : sortUnavailable ? t('sortUnavailable') : '';
+  document.getElementById('settings-status').textContent = settingsStale ? t('settingsChanged') : recovery ? t('invalidConfig') : sortUnavailable && weatherSettingsPage.hidden ? t('sortUnavailable') : '';
+  document.getElementById('backup-status').textContent = appStorage.persistent ? '' : t('storageTemporary');
 }
 window.addEventListener('startpage-storage-status', () => updateSettingsStatus());
 window.addEventListener('storage', event => {
@@ -252,6 +261,7 @@ async function fetchWeatherData(loc) {
     const result = await weatherClient.load(loc);
     if (!result) return false;
     applyWeatherData(result.data);
+    updateWeatherSummary();
     return true;
   } catch (error) {
     setWeatherMessage(t(error.message), 'is-error');
@@ -333,7 +343,7 @@ const searchLocationSuggestions = debounce(async (query, token) => {
   locationSearchController = new AbortController();
   try {
     const locations = await lookupLocations(query, 6, locationSearchController.signal);
-    if (token !== locationSearchToken || locationModal.style.display !== 'flex') return;
+    if (token !== locationSearchToken || !isLocationEditorOpen()) return;
     renderLocationSuggestions(locations);
   } catch (error) {
     if (token !== locationSearchToken || error.name === 'AbortError') return;
@@ -361,7 +371,10 @@ async function confirmWeatherLocation(location) {
   }
   clearWeatherCache();
   setWeatherMessage(t('loading'), 'is-prompt');
-  if (await fetchWeatherData(loc)) closeModal(locationModal);
+  if (await fetchWeatherData(loc)) {
+    if (!weatherLocationEditor.hidden) { closeInlineLocationEditor(); document.getElementById('weatherLocationBtn').focus(); }
+    else closeModal(locationModal);
+  }
   else locationError.textContent = weatherTemp.textContent;
 }
 
@@ -409,7 +422,7 @@ function setApiKeyVisible(visible) {
   toggleApiKeyBtn.title = t(visible ? 'hideApiKey' : 'showApiKey');
 }
 toggleApiKeyBtn.onclick = () => setApiKeyVisible(apiKeyInput.type === 'password');
-function renderApiKeySection() { const key = getApiKey(); if (key) { document.getElementById('api-key-saved-text').textContent = key.length > 8 ? key.substring(0, 4) + '••••••••' + key.substring(key.length - 4) : '••••••••'; document.getElementById('api-key-saved-mode').style.display = 'flex'; document.getElementById('api-key-edit-mode').style.display = 'none'; } else { document.getElementById('api-key-saved-mode').style.display = 'none'; document.getElementById('api-key-edit-mode').style.display = 'flex'; } }
+function renderApiKeySection() { updateWeatherSummary(); const key = getApiKey(); if (key) { document.getElementById('api-key-saved-text').textContent = key.length > 8 ? key.substring(0, 4) + '••••••••' + key.substring(key.length - 4) : '••••••••'; document.getElementById('api-key-saved-mode').style.display = 'flex'; document.getElementById('api-key-edit-mode').style.display = 'none'; } else { document.getElementById('api-key-saved-mode').style.display = 'none'; document.getElementById('api-key-edit-mode').style.display = 'flex'; } }
 
 document.querySelectorAll('[data-svg="edit"]').forEach(el => { el.replaceChildren(createIcon('edit')); el.removeAttribute('data-svg'); });
 document.querySelectorAll('[data-svg="check"]').forEach(el => { el.replaceChildren(createIcon('check')); el.removeAttribute('data-svg'); });
@@ -500,8 +513,51 @@ function customNotice(message) {
   customNoticeClose.onclick = () => closeModal(customNoticeModal);
 }
 
+function updateWeatherSummary() {
+  const location = getSavedWeatherLocation();
+  document.getElementById('weatherSettingsSummary').textContent = !getApiKey() ? t('notConfigured') : location?.name || t('configured');
+  document.getElementById('weatherLocationSummary').textContent = location?.name || t('locationUnset');
+}
+function isLocationEditorOpen() {
+  return locationModal.style.display === 'flex' || (!weatherSettingsPage.hidden && !weatherLocationEditor.hidden);
+}
+function closeInlineLocationEditor() {
+  if (!weatherLocationEditor.contains(locationFields)) return;
+  cancelLocationSearch();
+  locationModal.querySelector('.modal-content').appendChild(locationFields);
+  weatherLocationEditor.hidden = true;
+  document.getElementById('weatherLocationBtn').setAttribute('aria-expanded', 'false');
+}
+function showWeatherSettings() {
+  if (settingsStale || !groupStore.flush()) return;
+  document.querySelector('.group-color-field')?.remove();
+  if (sortableInst) { sortableInst.destroy(); sortableInst = null; }
+  settingsGroupsContainer.style.display = 'none';
+  globalSettingsSection.style.display = 'none'; settingsActions.style.display = 'none';
+  weatherSettingsPage.hidden = false; settingsBackButton.hidden = false;
+  document.getElementById('langToggleBtnSettings').style.display = 'flex';
+  settingsTitle.textContent = t('weatherSettings');
+  renderApiKeySection(); updateSettingsStatus(); setApiKeyVisible(false);
+  settingsModal.querySelector('.modal-content').scrollTop = 0;
+  document.getElementById('weatherLocationBtn').focus({ preventScroll: true });
+}
+settingsBackButton.onclick = async () => {
+  closeInlineLocationEditor(); setApiKeyVisible(false);
+  await renderSettingsGroups();
+  settingsModal.querySelector('.modal-content').scrollTop = 0;
+  document.getElementById('weatherSettingsBtn').focus({ preventScroll: true });
+};
+document.getElementById('weatherSettingsBtn').onclick = showWeatherSettings;
+document.getElementById('weatherLocationBtn').onclick = () => {
+  if (!weatherLocationEditor.hidden) { closeInlineLocationEditor(); return; }
+  if (!getApiKey()) { customNotice(t('configureWeatherFirst')); return; }
+  resetLocationModal();
+  weatherLocationEditor.appendChild(locationFields); weatherLocationEditor.hidden = false;
+  document.getElementById('weatherLocationBtn').setAttribute('aria-expanded', 'true');
+  locationInput.focus();
+};
 function openWeatherAction() {
-  if (!getApiKey()) { settingsIcon.click(); return; }
+  if (!getApiKey()) { openSettings('weather'); return; }
   if (weatherDisplay.classList.contains('is-error')) {
     const loc = getSavedWeatherLocation();
     if (loc) { clearWeatherCache(); fetchWeatherData(loc); }
@@ -546,7 +602,7 @@ useCurrentLocationBtn.onclick = () => {
       try {
         const locations = await lookupLocations({ lat: p.coords.latitude, lon: p.coords.longitude }, 1);
         if (!locations[0]) throw new Error(t('weatherLocationMissing'));
-        if (token !== locationSearchToken || locationModal.style.display !== 'flex') return;
+        if (token !== locationSearchToken || !isLocationEditorOpen()) return;
         locationInput.value = formatLocation(locations[0]);
         setLocationPreview(locations[0], 'detected');
         hideLocationSuggestions();
@@ -567,7 +623,7 @@ useCurrentLocationBtn.onclick = () => {
     { enableHighAccuracy: false, timeout: 10000, maximumAge: 300000 }
   );
 };
-settingsIcon.onclick = async () => {
+async function openSettings(page = 'main') {
   if (openingSettings || settingsModal.style.display === 'flex') return;
   openingSettings = true;
   try {
@@ -576,16 +632,19 @@ settingsIcon.onclick = async () => {
     document.getElementById('settings-editor').disabled = false;
     document.getElementById('langToggleBtnSettings').disabled = false;
     loadSiteData(); loadEnginesData(); updateAllTexts();
-    await renderSettingsGroups();
-    openModal(settingsModal, settingsGroupsContainer.querySelector('input, button') || settingsCloseButton);
+    if (page === 'weather') showWeatherSettings();
+    else await renderSettingsGroups();
+    openModal(settingsModal, page === 'weather' ? document.getElementById('weatherLocationBtn') : settingsGroupsContainer.querySelector('input, button') || settingsCloseButton);
   } catch {
     releaseSettingsLock?.(); releaseSettingsLock = null;
     customNotice(t('importFailed'));
   } finally { openingSettings = false; }
-};
+}
+settingsIcon.onclick = () => openSettings();
 settingsCloseButton.onclick = () => {
   if (!settingsStale && (!groupStore.flush() || !engineStore.flush())) return;
   groupStore.cancel(); engineStore.cancel();
+  closeInlineLocationEditor();
   setApiKeyVisible(false); closeModal(settingsModal);
   releaseSettingsLock?.(); releaseSettingsLock = null;
   settingsStale = false;
@@ -820,6 +879,9 @@ function enableKeyboardSorting(container, items, onChange) {
   });
 }
 async function renderSettingsGroups() {
+  closeInlineLocationEditor();
+  weatherSettingsPage.hidden = true; settingsBackButton.hidden = true;
+  settingsGroupsContainer.style.display = 'flex';
   updateSettingsStatus();
   document.querySelector('.group-color-field')?.remove();
   settingsTitle.textContent = t('settings'); globalSettingsSection.style.display = "flex"; settingsActions.style.display = "flex"; document.getElementById('langToggleBtnSettings').style.display = 'flex';

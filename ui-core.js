@@ -2,10 +2,11 @@
 const appStorage = window.startPageStorage;
 const i18n = {
   zh: {
-    storageTemporary: "当前配置仅在本次打开期间有效，请导出备份。", settingsBusy: "另一个页面正在编辑设置，请先在那里关闭设置。", settingsChanged: "其他页面已更新配置，本页已停止保存。请关闭设置后重新打开，载入最新配置。",sortUnavailable: "拖动暂不可用，可聚焦排序图标后用 Alt + ↑ / ↓ 调整顺序。", sortKeyboard: "排序：Alt + ↑ / ↓", invalidUrl: "请输入有效的 HTTP 或 HTTPS 网址", invalidEngine: "请填写有效名称和搜索网址，并在网址中用 {query} 表示搜索词", requestTimeout: "请求超时，请重试", locationNoMatches: "没有匹配的城市", weatherSettings: "天气设置", toggleTheme: "切换深浅主题", close: "关闭", newEngine: "添加搜索引擎", invalidConfig: "配置格式或内容无效，已保留恢复副本。",
+    storageTemporary: "当前无法自动保存，关闭前请导出配置。", settingsBusy: "另一个页面正在编辑设置，请先在那里关闭设置。", settingsChanged: "其他页面已更新配置，本页已停止保存。请关闭设置后重新打开，载入最新配置。",sortUnavailable: "拖动暂不可用，可聚焦排序图标后用 Alt + ↑ / ↓ 调整顺序。", sortKeyboard: "排序：Alt + ↑ / ↓", invalidUrl: "请输入有效的 HTTP 或 HTTPS 网址", invalidEngine: "请填写有效名称和搜索网址，并在网址中用 {query} 表示搜索词", requestTimeout: "请求超时，请重试", locationNoMatches: "没有匹配的城市", weatherSettings: "天气设置", toggleTheme: "切换深浅主题", close: "关闭", newEngine: "添加搜索引擎", invalidConfig: "配置格式或内容无效，已保留恢复副本。",
     editUsername: "编辑用户名", editApiKey: "编辑 API Key", apiKeyLabel: "天气 API Key", groupColor: "分组颜色", urlLabel: "网站网址",
     groupLimit: "最多可添加 {limit} 个分组。", linkLimit: "最多可添加 {limit} 个链接。", engineLimit: "最多可添加 {limit} 个搜索引擎。", backupTooLarge: "配置文件超过 {limit} MiB 上限。", exportFailed: "当前配置包含无效内容，无法导出，请检查设置。",
     locationApiFailed: "城市查询服务返回异常，请稍后重试。", locationTimeout: "城市查询超时，请重试。",
+    searchSettings: "搜索引擎", configured: "已配置", notConfigured: "未配置", locationLabel: "位置", locationUnset: "未选择", configureWeatherFirst: "请先填写并保存天气 API Key。",
     weatherHostLabel: "API Host（控制台设置，可选）", weatherHostInvalid: "请输入控制台分配的 *.qweatherapi.com 域名",
     backup: "配置备份", includeApiKey: "包含天气 API Key", exportKeyHint: "勾选后，导出的文件将包含明文 Key。", showApiKey: "显示 API Key", hideApiKey: "隐藏 API Key",
     settings: "设置", inputLocation: "输入您的位置", locPlaceholder: "输入城市并选择匹配位置", saveLoc: "保存位置", useCurLoc: "使用当前位置",
@@ -25,10 +26,11 @@ const i18n = {
     editBtnTitle: "编辑", delGroupTitle: "删除分组", usernamePlaceholder: "输入您的名字", welcomeSkip: "Skip"
   },
   en: {
-    storageTemporary: "Settings are temporary in this session. Export a backup to keep them.", settingsBusy: "Settings are being edited in another page. Close them there first.", settingsChanged: "Another page updated the settings. Saving is paused here. Close and reopen settings to load the latest version.", sortUnavailable: "Drag sorting is unavailable. Focus a sort handle and use Alt + Up / Down.", sortKeyboard: "Reorder: Alt + Up / Down", invalidUrl: "Enter a valid HTTP or HTTPS URL", invalidEngine: "Enter a name and a valid search URL containing {query}", requestTimeout: "Request timed out. Please retry.", locationNoMatches: "No matching cities", weatherSettings: "Weather settings", toggleTheme: "Toggle light/dark theme", close: "Close", newEngine: "Add search engine", invalidConfig: "Invalid settings; a recovery copy has been retained.",
+    storageTemporary: "Settings cannot be saved automatically. Export them before closing.", settingsBusy: "Settings are being edited in another page. Close them there first.", settingsChanged: "Another page updated the settings. Saving is paused here. Close and reopen settings to load the latest version.", sortUnavailable: "Drag sorting is unavailable. Focus a sort handle and use Alt + Up / Down.", sortKeyboard: "Reorder: Alt + Up / Down", invalidUrl: "Enter a valid HTTP or HTTPS URL", invalidEngine: "Enter a name and a valid search URL containing {query}", requestTimeout: "Request timed out. Please retry.", locationNoMatches: "No matching cities", weatherSettings: "Weather settings", toggleTheme: "Toggle light/dark theme", close: "Close", newEngine: "Add search engine", invalidConfig: "Invalid settings; a recovery copy has been retained.",
     editUsername: "Edit username", editApiKey: "Edit API Key", apiKeyLabel: "Weather API Key", groupColor: "Group color", urlLabel: "Website URL",
     groupLimit: "You can add up to {limit} groups.", linkLimit: "You can add up to {limit} links.", engineLimit: "You can add up to {limit} search engines.", backupTooLarge: "The configuration file exceeds the {limit} MiB limit.", exportFailed: "The current settings contain invalid values and cannot be exported. Please check your settings.",
     locationApiFailed: "City lookup service error. Please try again.", locationTimeout: "City lookup timed out. Please retry.",
+    searchSettings: "Search engines", configured: "Configured", notConfigured: "Not configured", locationLabel: "Location", locationUnset: "Not selected", configureWeatherFirst: "Enter and save the weather API Key first.",
     weatherHostLabel: "API Host (Console settings, optional)", weatherHostInvalid: "Enter the *.qweatherapi.com hostname assigned in the Console",
     backup: "Configuration backup", includeApiKey: "Include weather API Key", exportKeyHint: "When selected, the exported file will contain the Key in plain text.", showApiKey: "Show API Key", hideApiKey: "Hide API Key",
     settings: "Settings", inputLocation: "Enter your location", locPlaceholder: "Type a city and choose a match", saveLoc: "Save Location", useCurLoc: "Use Current Location",
@@ -70,6 +72,7 @@ function getGreetingMsg() {
 }
 
 const ICONS = {
+  cloud: '<svg viewBox="0 0 24 24"><path d="M6 19a4 4 0 0 1-.7-7.94A7 7 0 0 1 19 9.5a4.75 4.75 0 0 1-.75 9.5Z"/></svg>',
   eye: '<svg viewBox="0 0 24 24"><path d="M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7S2 12 2 12Z"/><circle cx="12" cy="12" r="3"/></svg>',
   eyeOff: '<svg viewBox="0 0 24 24"><path d="m3 3 18 18M10.6 5.1 12 5c6.5 0 10 7 10 7a18 18 0 0 1-3 3.8M6.3 6.3A20 20 0 0 0 2 12s3.5 7 10 7c1.9 0 3.6-.6 5-1.5M10 10a3 3 0 0 0 4 4"/></svg>',
   bars: '<svg viewBox="0 0 24 24"><path d="M4 7h16"/><path d="M4 12h16"/><path d="M4 17h16"/></svg>',

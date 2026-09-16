@@ -57,6 +57,7 @@
           <button class="header-btn close-btn" id="loc-close-button" aria-label="Close">&times;</button>
         </div>
       </div>
+      <div id="location-fields">
       <div class="location-field">
         <input type="text" id="locationInput" class="standalone-input location-input" autocomplete="off" aria-autocomplete="list" aria-controls="locationSuggestions" aria-expanded="false" />
         <div id="locationSuggestions" class="location-suggestions" role="listbox"></div>
@@ -67,6 +68,7 @@
         <button id="useCurrentLocationBtn" class="btn btn-secondary">使用当前位置</button>
       </div>
       <p id="locationError" class="location-error" role="status" aria-live="polite"></p>
+      </div>
     </div>
   </div>
 
@@ -80,7 +82,7 @@
   <div id="settingsModal" class="modal" role="dialog" aria-modal="true" aria-labelledby="settings-title" tabindex="-1">
     <div class="modal-content modal-content-settings">
       <div class="modal-header">
-        <h2 id="settings-title">设置</h2>
+        <div class="settings-heading"><button type="button" id="settings-back-button" class="header-btn" aria-label="返回" hidden>‹</button><h2 id="settings-title">设置</h2></div>
         <div class="header-actions">
           <button class="header-btn lang-btn" id="langToggleBtnSettings">EN</button>
           <button class="header-btn close-btn" id="settings-close-button" aria-label="Close">&times;</button>
@@ -97,8 +99,13 @@
       </div>
 
       <div id="global-settings-section" class="settings-section">
-        <button id="editEnginesBtn" class="btn btn-accent full-width">
-          <span class="ui-icon" data-icon="search"></span> <span id="editEnginesBtnText">自定义搜索引擎</span>
+        <button id="editEnginesBtn" class="setting-item settings-entry">
+          <span class="ui-icon" data-icon="search"></span> <span id="editEnginesBtnText">搜索引擎</span><span class="entry-chevron" aria-hidden="true">›</span>
+        </button>
+
+        <button type="button" id="weatherSettingsBtn" class="setting-item settings-entry">
+          <span class="ui-icon" data-icon="cloud"></span><span id="weatherSettingsBtnText">天气设置</span>
+          <span id="weatherSettingsSummary" class="entry-summary"></span><span class="entry-chevron" aria-hidden="true">›</span>
         </button>
 
         <div id="username-section">
@@ -116,6 +123,22 @@
           </div>
         </div>
 
+        <section class="settings-backup-section" aria-labelledby="backup-title">
+          <h3 id="backup-title">配置备份</h3>
+          <p id="backup-status" class="settings-status" role="status" aria-live="polite"></p>
+          <div class="settings-data-actions">
+            <button id="exportConfigBtn" class="btn btn-secondary full-width">导出配置</button>
+            <button id="importConfigBtn" class="btn btn-secondary full-width">导入配置</button>
+            <input id="importConfigInput" type="file" accept="application/json,.json" hidden>
+          </div>
+        </section>
+      </div>
+      <section id="weather-settings-page" hidden>
+        <button type="button" id="weatherLocationBtn" class="setting-item settings-entry" aria-expanded="false" aria-controls="weather-location-editor">
+          <span id="weatherLocationLabel">位置</span><span id="weatherLocationSummary" class="entry-summary"></span><span class="entry-chevron" aria-hidden="true">›</span>
+        </button>
+        <div id="weather-location-editor" hidden></div>
+        <label class="weather-host-label" id="weather-key-label" for="apiKeyInput">API Key</label>
         <div id="api-key-section">
           <div class="setting-item setting-saved-row" id="api-key-saved-mode">
             <div class="setting-label-row">
@@ -138,15 +161,7 @@
           <p id="weatherHostError" class="location-error" role="status"></p>
           <p id="applyApiKeyText" class="api-key-help"></p>
         </div>
-        <section class="settings-backup-section" aria-labelledby="backup-title">
-          <h3 id="backup-title">配置备份</h3>
-          <div class="settings-data-actions">
-            <button id="exportConfigBtn" class="btn btn-secondary full-width">导出配置</button>
-            <button id="importConfigBtn" class="btn btn-secondary full-width">导入配置</button>
-            <input id="importConfigInput" type="file" accept="application/json,.json" hidden>
-          </div>
-        </section>
-      </div>
+      </section>
       </fieldset>
     </div>
   </div>

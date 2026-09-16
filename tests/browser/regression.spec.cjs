@@ -111,6 +111,41 @@ test('late weather results cannot overwrite a newer city', async ({ page }) => {
     return { temp: weatherTemp.textContent, city: getSavedWeatherLocation().id, cache: JSON.parse(appStorage.getItem('weatherCache')).locationId };
   });
   expect(result).toEqual({ temp: '25°C', city: 'new', cache: 'new' });
+  await settings(page);
+  await expect(page.locator('#apiKeyInput')).not.toBeVisible();
+  await expect(page.locator('#weatherHostInput')).not.toBeVisible();
+  await expect(page.locator('#weatherSettingsSummary')).toHaveText('New');
+  await page.locator('#weatherSettingsBtn').click();
+  await expect(page.locator('#settings-title')).toHaveText('天气设置');
+  await expect(page.locator('#weatherHostInput')).toBeVisible();
+  await expect(page.locator('#exportConfigBtn')).not.toBeVisible();
+  await page.route('https://*.qweather.com/**', route => {
+    const payload = route.request().url().includes('/city/lookup')
+      ? { code: '200', location: [{ id: 'inline', name: 'Inline City' }] }
+      : { code: '200', now: { temp: '26', feelsLike: '25' }, daily: [{ tempMax: '30', tempMin: '20' }] };
+    return route.fulfill({ json: payload });
+  });
+  await page.locator('#weatherLocationBtn').click();
+  await expect(page.locator('#locationModal')).not.toBeVisible();
+  await expect(page.locator('#weather-location-editor #locationInput')).toBeVisible();
+  await page.locator('#locationInput').fill('Inline');
+  await page.locator('#locationSuggestions button').first().click();
+  await page.locator('#saveLocationBtn').click();
+  await expect(page.locator('#weather-location-editor')).not.toBeVisible();
+  await expect(page.locator('#weatherLocationSummary')).toHaveText('Inline City');
+  await page.locator('#langToggleBtnSettings').click();
+  await expect(page.locator('#settings-title')).toHaveText('Weather settings');
+  await page.locator('#settings-back-button').click();
+  await expect(page.locator('#settings-title')).toHaveText('Settings');
+  await expect(page.locator('#weatherSettingsSummary')).toHaveText('Inline City');
+  await page.locator('#settings-close-button').click();
+  await page.locator('#weather').click();
+  await expect(page.locator('#locationModal #locationInput')).toBeVisible();
+  await page.locator('#loc-close-button').click();
+  await page.evaluate(() => appStorage.removeItem('qweatherApiKey'));
+  await page.locator('#weather').click();
+  await expect(page.locator('#settings-title')).toHaveText('Weather settings');
+  await expect(page.locator('#apiKeyInput')).toBeVisible();
 });
 
 test('built standalone runs offline and imports with denied storage; package contains only runtime files', async ({ browser }) => {
@@ -123,6 +158,8 @@ test('built standalone runs offline and imports with denied storage; package con
     page.on('pageerror', error => errors.push(error.message)); page.on('request', r => { if (r.url().startsWith('http')) network.push(r.url()); });
     await page.goto(pathToFileURL(file).href); await page.locator('#welcome-skip').click();
     await expect(page.locator('#welcome-overlay')).not.toBeVisible(); await settings(page);
+    await expect(page.locator('#settings-status')).toBeEmpty();
+    await expect(page.locator('.settings-backup-section #backup-status')).toContainText('关闭前请导出配置');
     const rect = await page.locator('#settingsModal .modal-content').boundingBox();
     expect(rect.y).toBeGreaterThanOrEqual(0); expect(rect.y + rect.height).toBeLessThanOrEqual(650);
     await importFile(page, Buffer.from(JSON.stringify({ schemaVersion: 2, settings: { userName: 'Offline' } })));

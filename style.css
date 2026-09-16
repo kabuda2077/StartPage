@@ -430,6 +430,20 @@ input[type="text"]:focus, input[type="url"]:focus { outline: none; }
 }
 .modal-header h2 { margin: 0; font-size: 1.2rem; color: var(--text-color); font-weight: 600; }
 
+.settings-heading { display: flex; align-items: center; gap: 6px; min-width: 0; }
+#settings-back-button { border: 0; border-radius: 6px; flex-shrink: 0; font-size: 28px; }
+#settings-back-button[hidden] { display: none; }
+.settings-entry { width: 100%; font: inherit; font-size: 0.95rem; color: var(--text-gray); text-align: left; cursor: pointer; }
+.settings-entry > .ui-icon { color: var(--text-light); width: 20px; flex-shrink: 0; }
+.entry-summary { margin-left: auto; color: var(--text-light); font-size: 0.8rem; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; min-width: 0; }
+.entry-chevron { color: var(--text-light); margin-left: auto; flex-shrink: 0; font-size: 1.2rem; }
+.entry-summary + .entry-chevron { margin-left: 0; }
+.settings-entry:focus-visible { outline: 2px solid var(--focus-ring); outline-offset: 2px; }
+#weather-settings-page:not([hidden]) { display: flex; flex-direction: column; gap: 14px; }
+#weather-key-label { margin: 4px 4px -6px; }
+#weather-location-editor { padding: 4px 0; }
+#weather-location-editor .location-suggestions { position: static; margin-top: 6px; }
+
 .header-actions { display: flex; align-items: center; gap: 8px; margin-right: 5px; }
 
 .header-btn {
@@ -449,7 +463,7 @@ input[type="text"]:focus, input[type="url"]:focus { outline: none; }
   display: inline-flex; align-items: center; justify-content: center; gap: 8px;
 }
 
-.btn-primary, .btn-secondary, .btn-accent {
+.btn-primary, .btn-secondary {
   height: 42px;
   box-sizing: border-box;
 }
@@ -457,8 +471,6 @@ input[type="text"]:focus, input[type="url"]:focus { outline: none; }
 .btn-primary { background-color: var(--accent-color); color: #fff; }
 .btn-confirm-danger { background-color: var(--danger-color); color: #fff; flex: 1; }
 .btn-secondary { background-color: var(--hover-bg); color: var(--text-gray); }
-.btn-accent { background-color: #eef2ff; color: #4f46e5; border: 1px solid #e0e7ff; }
-body.dark-mode .btn-accent { background-color: #1e293b; color: #818cf8; border-color: #334155; }
 .btn-icon { padding: 0; width: 32px; height: 32px; background: transparent; color: var(--text-light); flex-shrink: 0; }
 .btn-icon:hover { background: var(--hover-bg); color: var(--text-color); }
 .btn-danger { color: var(--danger-color); }
