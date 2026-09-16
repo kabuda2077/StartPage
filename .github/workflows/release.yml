@@ -58,6 +58,7 @@ jobs:
           zip -r "StartPage-${{ steps.version.outputs.version }}.zip" . \
             -x "*.git*" \
             -x ".github/*" \
+            -x ".claude/*" \
             -x "README.md" \
             -x "CHANGELOG.md" \
             -x "release_notes.md" \
