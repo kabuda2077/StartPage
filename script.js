@@ -1,5 +1,6 @@
 const i18n = {
   zh: {
+    backup: "配置备份", includeApiKey: "包含天气 API Key", exportKeyHint: "勾选后，导出的文件将包含明文 Key。", showApiKey: "显示 API Key", hideApiKey: "隐藏 API Key",
     settings: "设置", inputLocation: "输入您的位置", locPlaceholder: "输入城市并选择匹配位置", saveLoc: "保存位置", useCurLoc: "使用当前位置",
     addNewGroup: "添加新分组", customEngine: "自定义搜索引擎", apiKeySet: "API Key 已设置", inputApiKey: "输入和风天气 API Key",
     applyApiKey: '前往 <a href="https://dev.qweather.com" target="_blank" rel="noopener">dev.qweather.com</a> 免费申请 API Key',
@@ -17,6 +18,7 @@ const i18n = {
     editBtnTitle: "编辑", delGroupTitle: "删除分组", usernamePlaceholder: "输入您的名字", welcomeSkip: "跳过"
   },
   en: {
+    backup: "Configuration backup", includeApiKey: "Include weather API Key", exportKeyHint: "When selected, the exported file will contain the Key in plain text.", showApiKey: "Show API Key", hideApiKey: "Hide API Key",
     settings: "Settings", inputLocation: "Enter your location", locPlaceholder: "Type a city and choose a match", saveLoc: "Save Location", useCurLoc: "Use Current Location",
     addNewGroup: "Add New Group", customEngine: "Search Engines", apiKeySet: "API Key is Set", inputApiKey: "Enter QWeather API Key",
     applyApiKey: 'Get a free API Key at <a href="https://dev.qweather.com" target="_blank" rel="noopener">dev.qweather.com</a>',
@@ -56,6 +58,8 @@ function getGreetingMsg() {
 }
 
 const ICONS = {
+  eye: '<svg viewBox="0 0 24 24"><path d="M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7S2 12 2 12Z"/><circle cx="12" cy="12" r="3"/></svg>',
+  eyeOff: '<svg viewBox="0 0 24 24"><path d="m3 3 18 18M10.6 5.1 12 5c6.5 0 10 7 10 7a18 18 0 0 1-3 3.8M6.3 6.3A20 20 0 0 0 2 12s3.5 7 10 7c1.9 0 3.6-.6 5-1.5M10 10a3 3 0 0 0 4 4"/></svg>',
   bars: '<svg viewBox="0 0 24 24"><path d="M4 7h16"/><path d="M4 12h16"/><path d="M4 17h16"/></svg>',
   check: '<svg viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg>',
   cog: '<svg viewBox="0 0 24 24"><path d="M12 15.5a3.5 3.5 0 1 0 0-7 3.5 3.5 0 0 0 0 7Z"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 1 1-4 0v-.09a1.65 1.65 0 0 0-1-1.51 1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.6 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 1 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 8.92 4a1.65 1.65 0 0 0 1-1.51V2.4a2 2 0 1 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9c.14.47.5.84.96 1H21a2 2 0 1 1 0 4h-.09c-.46.16-.82.53-.96 1Z"/></svg>',
@@ -240,6 +244,13 @@ function updateAllTexts() {
   customNoticeClose.textContent = t('ok');
   exportConfigBtn.textContent = t('exportConfig');
   importConfigBtn.textContent = t('importConfig');
+  document.getElementById('backup-title').textContent = t('backup');
+  document.getElementById('export-config-title').textContent = t('exportConfig');
+  document.getElementById('include-api-key-label').textContent = t('includeApiKey');
+  document.getElementById('export-key-hint').textContent = t('exportKeyHint');
+  confirmExportBtn.textContent = t('exportConfig');
+  cancelExportBtn.textContent = t('cancel');
+  setApiKeyVisible(apiKeyInput.type === 'text');
   searchEngineSelector.setAttribute('aria-label', t('customEngine'));
   settingsIcon.setAttribute('aria-label', t('settings'));
   renderUsernameSection();
@@ -295,6 +306,12 @@ const searchInput = document.getElementById('search-input');
 const searchEngineSelector = document.getElementById('search-engine-selector');
 const currentEngineIcon = document.getElementById('current-engine-icon');
 const engineList = document.getElementById('engine-list');
+const exportConfigModal = document.getElementById('exportConfigModal');
+const includeApiKey = document.getElementById('includeApiKey');
+const confirmExportBtn = document.getElementById('confirmExportBtn');
+const cancelExportBtn = document.getElementById('cancelExportBtn');
+const apiKeyInput = document.getElementById('apiKeyInput');
+const toggleApiKeyBtn = document.getElementById('toggleApiKeyBtn');
 const exportConfigBtn = document.getElementById('exportConfigBtn');
 const importConfigBtn = document.getElementById('importConfigBtn');
 const importConfigInput = document.getElementById('importConfigInput');
@@ -597,6 +614,14 @@ function renderEngineDropdown() {
 }
 
 function renderUsernameSection() { const name = getUserName(); document.getElementById('username-saved-text').textContent = name; document.getElementById('username-saved-mode').style.display = name ? 'flex' : 'none'; document.getElementById('username-edit-mode').style.display = name ? 'none' : 'flex'; }
+function setApiKeyVisible(visible) {
+  apiKeyInput.type = visible ? 'text' : 'password';
+  toggleApiKeyBtn.replaceChildren(createIcon(visible ? 'eyeOff' : 'eye'));
+  toggleApiKeyBtn.setAttribute('aria-pressed', String(visible));
+  toggleApiKeyBtn.setAttribute('aria-label', t(visible ? 'hideApiKey' : 'showApiKey'));
+  toggleApiKeyBtn.title = t(visible ? 'hideApiKey' : 'showApiKey');
+}
+toggleApiKeyBtn.onclick = () => setApiKeyVisible(apiKeyInput.type === 'password');
 function renderApiKeySection() { const key = getApiKey(); if (key) { document.getElementById('api-key-saved-text').textContent = key.length > 8 ? key.substring(0, 4) + '••••••••' + key.substring(key.length - 4) : '••••••••'; document.getElementById('api-key-saved-mode').style.display = 'flex'; document.getElementById('api-key-edit-mode').style.display = 'none'; } else { document.getElementById('api-key-saved-mode').style.display = 'none'; document.getElementById('api-key-edit-mode').style.display = 'flex'; } }
 
 document.querySelectorAll('[data-svg="edit"]').forEach(el => { el.replaceChildren(createIcon('edit')); el.removeAttribute('data-svg'); });
@@ -641,6 +666,7 @@ document.addEventListener('keydown', e => {
   if (e.key === 'Escape') {
     e.preventDefault();
     if (activeModal === customConfirmModal) { confirmNoBtn.click(); return; }
+    if (activeModal === exportConfigModal) { cancelExportBtn.click(); return; }
     if (activeModal === customInputModal) { customInputNo.click(); return; }
     if (activeModal === customNoticeModal) { customNoticeClose.click(); return; }
     if (activeModal === settingsModal) { settingsCloseButton.click(); return; }
@@ -725,13 +751,13 @@ useCurrentLocationBtn.onclick = () => {
   );
 };
 settingsIcon.onclick = async () => { await renderSettingsGroups(); openModal(settingsModal, settingsGroupsContainer.querySelector('input, button') || settingsCloseButton); };
-settingsCloseButton.onclick = () => { closeModal(settingsModal); saveSiteData(); renderMainPageGroups(); };
+settingsCloseButton.onclick = () => { setApiKeyVisible(false); closeModal(settingsModal); saveSiteData(); renderMainPageGroups(); };
 closeOnBackdropClick(settingsModal, () => settingsCloseButton.onclick());
 document.getElementById('langToggleBtnSettings').onclick = () => { currentLang = currentLang === 'zh' ? 'en' : 'zh'; localStorage.setItem('lang', currentLang); updateAllTexts(); initWeather(); };
 document.getElementById('saveUsernameBtn').onclick = () => { localStorage.setItem('userName', document.getElementById('usernameInput').value.trim()); renderUsernameSection(); updateGreeting(); };
 document.getElementById('editUsernameBtn').onclick = () => { document.getElementById('username-saved-mode').style.display = 'none'; document.getElementById('username-edit-mode').style.display = 'flex'; };
-document.getElementById('saveApiKeyBtn').onclick = () => { localStorage.setItem('qweatherApiKey', document.getElementById('apiKeyInput').value.trim()); clearWeatherCache(); initWeather(); renderApiKeySection(); };
-document.getElementById('editApiKeyBtn').onclick = () => { document.getElementById('api-key-saved-mode').style.display = 'none'; document.getElementById('api-key-edit-mode').style.display = 'flex'; };
+document.getElementById('saveApiKeyBtn').onclick = () => { localStorage.setItem('qweatherApiKey', apiKeyInput.value.trim()); setApiKeyVisible(false); clearWeatherCache(); initWeather(); renderApiKeySection(); };
+document.getElementById('editApiKeyBtn').onclick = () => { apiKeyInput.value = getApiKey(); setApiKeyVisible(false); document.getElementById('api-key-saved-mode').style.display = 'none'; document.getElementById('api-key-edit-mode').style.display = 'flex'; apiKeyInput.focus(); };
 
 function setEngineListOpen(open) {
   engineList.classList.toggle('show', open);
@@ -964,7 +990,8 @@ async function editGroup(group) {
   const folderIcon = createIcon('folder'); folderIcon.style.color = g.color;
   folderIcon.setAttribute('aria-hidden', 'true');
   colorField.append(folderIcon, colorInput);
-  settingsTitle.append(colorField, document.createTextNode(g.title));
+  const titleText = document.createElement('span'); titleText.className = 'group-title-text'; titleText.textContent = g.title;
+  settingsTitle.append(colorField, titleText);
   const list = document.createElement('div'); list.id = 'l-list'; list.className = 'link-list';
   const actions = document.createElement('div'); actions.className = 'settings-inline-actions';
   const addBtn = document.createElement('button'); addBtn.id = 'addL'; addBtn.className = 'btn btn-primary'; addBtn.append(createIcon('plus'), document.createTextNode(` ${t('addNewLink')}`));
@@ -1011,13 +1038,24 @@ async function editGroup(group) {
   document.getElementById('backG').onclick = renderSettingsGroups;
 }
 
-function exportConfig() {
-  const settings = {};
-  ['siteData', 'enginesData', 'theme', 'lang', 'userName', 'weatherLocationData', 'weatherLocation', 'searchEngine'].forEach(key => {
-    const value = localStorage.getItem(key);
-    if (value !== null) settings[key] = value;
-  });
-  const blob = new Blob([JSON.stringify({ schemaVersion: 1, exportedAt: new Date().toISOString(), settings }, null, 2)], { type: 'application/json' });
+function createConfigSnapshot(withApiKey = false) {
+  const location = getSavedWeatherLocation();
+  const activeEngine = enginesData.find(engine => engine.id === localStorage.getItem('searchEngine')) || enginesData[0];
+  const settings = {
+    siteData: JSON.stringify(siteData),
+    enginesData: JSON.stringify(enginesData),
+    theme: document.body.classList.contains('dark-mode') ? 'dark' : 'light',
+    lang: currentLang,
+    userName: getUserName(),
+    weatherLocationData: JSON.stringify(location),
+    weatherLocation: location?.name || '',
+    searchEngine: activeEngine.id
+  };
+  if (withApiKey) settings.qweatherApiKey = getApiKey();
+  return { schemaVersion: 1, exportedAt: new Date().toISOString(), settings };
+}
+function exportConfig(withApiKey = false) {
+  const blob = new Blob([JSON.stringify(createConfigSnapshot(withApiKey), null, 2)], { type: 'application/json' });
   const link = document.createElement('a');
   link.href = URL.createObjectURL(blob); link.download = 'startpage-config.json'; link.click();
   setTimeout(() => URL.revokeObjectURL(link.href), 0);
@@ -1026,7 +1064,7 @@ function validateImportedSettings(data) {
   const isObject = value => value !== null && typeof value === 'object' && !Array.isArray(value);
   const isText = value => typeof value === 'string';
   if (data?.schemaVersion !== 1 || !isObject(data.settings)) throw new Error('Invalid configuration');
-  const allowed = ['siteData', 'enginesData', 'theme', 'lang', 'userName', 'weatherLocationData', 'weatherLocation', 'searchEngine'];
+  const allowed = ['siteData', 'enginesData', 'theme', 'lang', 'userName', 'weatherLocationData', 'weatherLocation', 'searchEngine', 'qweatherApiKey'];
   const settings = Object.fromEntries(Object.entries(data.settings).filter(([key]) => allowed.includes(key)));
   if (!Object.keys(settings).length || !Object.values(settings).every(isText)) throw new Error('Invalid settings');
   if ('theme' in settings && !['light', 'dark'].includes(settings.theme)) throw new Error('Invalid theme');
@@ -1048,7 +1086,7 @@ function validateImportedSettings(data) {
   }
   if ('weatherLocationData' in settings) {
     const location = JSON.parse(settings.weatherLocationData);
-    if (!isObject(location) || !['id', 'name', 'location'].some(key => isText(location[key]) && location[key])) throw new Error('Invalid location');
+    if (location !== null && (!isObject(location) || !['id', 'name', 'location'].some(key => isText(location[key]) && location[key]))) throw new Error('Invalid location');
   }
   return settings;
 }
@@ -1060,7 +1098,13 @@ async function importConfig(file) {
     clearWeatherCache(); location.reload();
   } catch (error) { customNotice(t('importFailed')); }
 }
-exportConfigBtn.onclick = exportConfig;
+exportConfigBtn.onclick = () => {
+  includeApiKey.checked = false;
+  openModal(exportConfigModal, includeApiKey);
+};
+confirmExportBtn.onclick = () => { exportConfig(includeApiKey.checked); closeModal(exportConfigModal); };
+cancelExportBtn.onclick = () => closeModal(exportConfigModal);
+closeOnBackdropClick(exportConfigModal, () => cancelExportBtn.click());
 importConfigBtn.onclick = () => importConfigInput.click();
 importConfigInput.onchange = () => { const file = importConfigInput.files[0]; if (file) importConfig(file); importConfigInput.value = ''; };
 

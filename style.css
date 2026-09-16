@@ -294,7 +294,7 @@ h1 {
 .engine-list li:hover,
 .engine-list li[aria-selected="true"] { background-color: var(--hover-bg); }
 
-input[type="text"], input[type="url"] {
+input[type="text"], input[type="url"], input[type="password"] {
   background-color: transparent; border: none; padding: 14px 18px;
   font-size: 1rem; color: var(--text-color); width: 100%;
   box-sizing: border-box; font-family: inherit;
@@ -579,6 +579,19 @@ body.dark-mode .btn-accent { background-color: #1e293b; color: #818cf8; border-c
   gap: 10px;
   margin-top: 22px;
 }
+#settings-title { display: flex; align-items: center; gap: 8px; min-width: 0; }
+#settings-title .group-title-text { overflow-wrap: anywhere; }
+
+.settings-backup-section { border-top: 1px solid var(--card-border); padding-top: 16px; }
+.settings-backup-section h3 { margin: 0 0 12px; font-size: 0.8rem; font-weight: 500; color: var(--text-light); }
+#confirmExportBtn { flex: 1; }
+.export-key-option { display: flex; align-items: center; gap: 8px; text-align: left; font-size: 0.9rem; }
+.export-key-option input { accent-color: var(--accent-color); }
+.export-key-hint { color: var(--text-light); font-size: 0.75rem; line-height: 1.6; text-align: left; margin: 10px 0 22px; }
+#apiKeyInput { min-width: 0; }
+#apiKeyInput[type="password"] { letter-spacing: 0.14em; }
+#apiKeyInput::placeholder { letter-spacing: normal; }
+
 .settings-data-actions {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
@@ -610,8 +623,7 @@ body.dark-mode .btn-accent { background-color: #1e293b; color: #818cf8; border-c
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  vertical-align: middle;
-  margin-right: 8px;
+  flex-shrink: 0;
   border-radius: 4px;
   cursor: pointer;
 }

@@ -89,11 +89,6 @@
         <button id="addNewGroupBtn" class="btn btn-primary full-width">
           <span class="ui-icon" data-icon="plus"></span> <span id="addNewGroupBtnText">添加新分组</span>
         </button>
-        <div class="settings-data-actions">
-          <button id="exportConfigBtn" class="btn btn-secondary full-width">导出配置</button>
-          <button id="importConfigBtn" class="btn btn-secondary full-width">导入配置</button>
-          <input id="importConfigInput" type="file" accept="application/json,.json" hidden>
-        </div>
       </div>
 
       <div id="global-settings-section" class="settings-section">
@@ -126,11 +121,32 @@
           </div>
           <div class="setting-item edit-height" id="api-key-edit-mode">
             <span class="ui-icon setting-icon" data-icon="key"></span>
-            <input type="password" class="setting-input" id="apiKeyInput" autocomplete="off">
+            <input type="password" class="setting-input" id="apiKeyInput" autocomplete="off" spellcheck="false" aria-label="天气 API Key">
+            <button type="button" class="btn btn-icon" id="toggleApiKeyBtn" aria-label="显示 API Key" aria-pressed="false"></button>
             <button class="btn btn-icon btn-success" id="saveApiKeyBtn" data-svg="check"></button>
           </div>
           <p id="applyApiKeyText" class="api-key-help"></p>
         </div>
+        <section class="settings-backup-section" aria-labelledby="backup-title">
+          <h3 id="backup-title">配置备份</h3>
+          <div class="settings-data-actions">
+            <button id="exportConfigBtn" class="btn btn-secondary full-width">导出配置</button>
+            <button id="importConfigBtn" class="btn btn-secondary full-width">导入配置</button>
+            <input id="importConfigInput" type="file" accept="application/json,.json" hidden>
+          </div>
+        </section>
+      </div>
+    </div>
+  </div>
+
+  <div id="exportConfigModal" class="modal" role="dialog" aria-modal="true" aria-labelledby="export-config-title" tabindex="-1">
+    <div class="modal-content modal-content-confirm">
+      <h2 id="export-config-title" class="confirm-message">导出配置</h2>
+      <label class="export-key-option"><input type="checkbox" id="includeApiKey"><span id="include-api-key-label">包含天气 API Key</span></label>
+      <p id="export-key-hint" class="export-key-hint">勾选后，导出的文件将包含明文 Key。</p>
+      <div class="confirm-actions">
+        <button type="button" class="btn btn-primary" id="confirmExportBtn">导出配置</button>
+        <button type="button" class="btn btn-secondary" id="cancelExportBtn">取消</button>
       </div>
     </div>
   </div>
