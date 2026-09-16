@@ -953,7 +953,7 @@ async function renderSettingsGroups() {
 async function editGroup(group) {
   await ensureSortable();
   const g = group;
-  settingsTitle.textContent = ''; settingsTitle.append(createIcon('folder'), document.createTextNode(g.title)); settingsTitle.querySelector('.ui-icon').style.cssText = `color:${g.color}; margin-right:8px;`; globalSettingsSection.style.display = "none"; settingsActions.style.display = "none"; document.getElementById('langToggleBtnSettings').style.display = 'none';
+  settingsTitle.textContent = ''; globalSettingsSection.style.display = "none"; settingsActions.style.display = "none"; document.getElementById('langToggleBtnSettings').style.display = 'none';
   settingsGroupsContainer.innerHTML = '';
   const colorField = document.createElement('label'); colorField.className = 'group-color-field';
   const colorLabel = currentLang === 'zh' ? '分组颜色' : 'Group Color';
@@ -961,8 +961,10 @@ async function editGroup(group) {
   const colorInput = document.createElement('input'); colorInput.type = 'color'; colorInput.value = g.color;
   colorInput.setAttribute('aria-label', colorLabel);
   colorInput.oninput = e => { g.color = e.target.value; settingsTitle.querySelector('.ui-icon').style.color = g.color; saveSiteData(); renderMainPageGroups(); };
-  colorField.appendChild(colorInput);
-  settingsTitle.appendChild(colorField);
+  const folderIcon = createIcon('folder'); folderIcon.style.color = g.color;
+  folderIcon.setAttribute('aria-hidden', 'true');
+  colorField.append(folderIcon, colorInput);
+  settingsTitle.append(colorField, document.createTextNode(g.title));
   const list = document.createElement('div'); list.id = 'l-list'; list.className = 'link-list';
   const actions = document.createElement('div'); actions.className = 'settings-inline-actions';
   const addBtn = document.createElement('button'); addBtn.id = 'addL'; addBtn.className = 'btn btn-primary'; addBtn.append(createIcon('plus'), document.createTextNode(` ${t('addNewLink')}`));
