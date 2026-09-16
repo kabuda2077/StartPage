@@ -1,7 +1,7 @@
 {
   "manifest_version": 3,
   "name": "StartPage",
-  "version": "1.7.0",
+  "version": "1.7.1",
   "description": "A clean and customizable new tab page.",
   "author": "StartPage contributors",
   "homepage_url": "https://github.com/kabuda2077/StartPage",
@@ -12,7 +12,9 @@
     "newtab": "index.html"
   },
   "host_permissions": [
-    "*://*.qweather.com/*"
+    "https://geoapi.qweather.com/*",
+    "https://devapi.qweather.com/*",
+    "https://*.qweatherapi.com/*"
   ],
   "icons": {
     "16": "icons/icon16.png",

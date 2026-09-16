@@ -7,6 +7,11 @@
   <script src="boot.js"></script>
   <link rel="stylesheet" href="style.css">
 
+  <script src="data.js" defer></script>
+  <script src="settings-store.js" defer></script>
+  <script src="weather-client.js" defer></script>
+  <script src="ui-core.js" defer></script>
+  <script src="welcome.js" defer></script>
   <script src="script.js" defer></script>
 </head>
 <body>
@@ -63,7 +68,7 @@
         <button id="saveLocationBtn" class="btn btn-primary">保存位置</button>
         <button id="useCurrentLocationBtn" class="btn btn-secondary">使用当前位置</button>
       </div>
-      <p id="locationError" class="location-error"></p>
+      <p id="locationError" class="location-error" role="status" aria-live="polite"></p>
     </div>
   </div>
 
@@ -83,6 +88,7 @@
           <button class="header-btn close-btn" id="settings-close-button" aria-label="Close">&times;</button>
         </div>
       </div>
+      <p id="settings-status" class="settings-status" role="status" aria-live="polite"></p>
       <div id="settings-groups-container"></div>
 
       <div id="settings-actions" class="settings-actions-section">
@@ -125,6 +131,12 @@
             <button type="button" class="btn btn-icon" id="toggleApiKeyBtn" aria-label="显示 API Key" aria-pressed="false"></button>
             <button class="btn btn-icon btn-success" id="saveApiKeyBtn" data-svg="check"></button>
           </div>
+          <label id="weather-host-label" class="weather-host-label" for="weatherHostInput">API Host（控制台设置，可选）</label>
+          <div class="setting-item">
+            <input type="text" class="setting-input" id="weatherHostInput" placeholder="xxxx.qweatherapi.com" autocomplete="off" spellcheck="false" maxlength="200">
+            <button type="button" class="btn btn-icon btn-success" id="saveWeatherHostBtn" aria-label="保存 API Host" data-svg="check"></button>
+          </div>
+          <p id="weatherHostError" class="location-error" role="status"></p>
           <p id="applyApiKeyText" class="api-key-help"></p>
         </div>
         <section class="settings-backup-section" aria-labelledby="backup-title">

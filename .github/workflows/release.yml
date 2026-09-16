@@ -52,23 +52,29 @@ jobs:
           fi
           cat release_notes.md
 
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+
+      - name: Verify release
+        if: steps.check.outputs.exists == 'false'
+        run: |
+          npm ci --include=dev
+          npx playwright install --with-deps chromium
+          npm test
+          node -e "const p=require('./package.json'),m=require('./manifest.json'); if(p.version!==m.version) process.exit(1)"
+
       - name: Package extension
         if: steps.check.outputs.exists == 'false'
         run: |
-          zip -r "StartPage-${{ steps.version.outputs.version }}.zip" . \
-            -x "*.git*" \
-            -x ".github/*" \
-            -x ".claude/*" \
-            -x "README.md" \
-            -x "CHANGELOG.md" \
-            -x "release_notes.md" \
-            -x "StartPage.html" \
-            -x "build.sh" \
-            -x "*.zip"
+          npm run package
+          cd dist/extension
+          zip -r "../../StartPage-${{ steps.version.outputs.version }}.zip" .
 
       - name: Build single-file HTML
         if: steps.check.outputs.exists == 'false'
-        run: bash build.sh
+        run: npm run build
 
       - name: Create Release
         if: steps.check.outputs.exists == 'false'

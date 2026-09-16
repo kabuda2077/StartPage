@@ -1,9 +1,13 @@
 (() => {
-  // Keep the page usable when a file preview or browser policy denies storage.
   const memory = new Map();
   let persistentStorage;
   try { persistentStorage = window.localStorage; } catch { /* use session memory */ }
+  const unavailable = () => {
+    persistentStorage = null;
+    window.dispatchEvent(new Event('startpage-storage-status'));
+  };
   const storage = {
+    get persistent() { return Boolean(persistentStorage); },
     getItem(key) {
       if (persistentStorage) {
         try {
@@ -11,7 +15,7 @@
           if (value !== null) memory.set(key, value);
           else memory.delete(key);
           return value;
-        } catch { persistentStorage = null; }
+        } catch { unavailable(); }
       }
       return memory.has(key) ? memory.get(key) : null;
     },
@@ -19,14 +23,14 @@
       memory.set(key, String(value));
       if (persistentStorage) {
         try { persistentStorage.setItem(key, String(value)); }
-        catch { persistentStorage = null; }
+        catch { unavailable(); }
       }
     },
     removeItem(key) {
       memory.delete(key);
       if (persistentStorage) {
         try { persistentStorage.removeItem(key); }
-        catch { persistentStorage = null; }
+        catch { unavailable(); }
       }
     }
   };

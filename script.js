@@ -1,228 +1,3 @@
-const appStorage = window.startPageStorage;
-const i18n = {
-  zh: {
-    backup: "配置备份", includeApiKey: "包含天气 API Key", exportKeyHint: "勾选后，导出的文件将包含明文 Key。", showApiKey: "显示 API Key", hideApiKey: "隐藏 API Key",
-    settings: "设置", inputLocation: "输入您的位置", locPlaceholder: "输入城市并选择匹配位置", saveLoc: "保存位置", useCurLoc: "使用当前位置",
-    addNewGroup: "添加新分组", customEngine: "自定义搜索引擎", apiKeySet: "API Key 已设置", inputApiKey: "输入和风天气 API Key",
-    applyApiKey: '前往 <a href="https://dev.qweather.com" target="_blank" rel="noopener">dev.qweather.com</a> 免费申请 API Key',
-    searchPlaceholder: "Search something...", searchWith: "Search with {name}", delGroupConfirm: "确认删除该分组及内部所有链接吗?",
-    delLinkConfirm: "确认删除该链接吗?", delEngineConfirm: "确认删除\"{name}\"?", editEngine: "编辑：{name}", engineName: "名称",
-    engineNamePlaceholder: "如: Google", engineUrl: "搜索网址 （只需输入如 baidu.com 即可）", engineUrlPlaceholder: "例如: baidu.com",
-    save: "保存", back: "返回", addNewLink: "添加新链接", linkNamePlaceholder: "网站名称",
-    newGroupNamePrompt: "请输入新分组名称:", engineNameUrlEmpty: "名称和网址不能为空", keepOneEngine: "至少保留一个搜索引擎",
-    yes: "是", no: "否", ok: "确定", cancel: "取消", exportConfig: "导出配置", importConfig: "导入配置", importSuccess: "配置导入成功", importFailed: "配置文件无效", importConfirm: "导入将覆盖当前配置，继续吗？", needApiKey: "天气服务需要自行申请API Key，点击右下角齿轮进行设置", clickToGetLoc: "点击获取位置",
-    loading: "加载中...", locNotSupported: "您的浏览器不支持地理定位。", gettingLoc: "正在获取当前位置...",
-    locFailed: "定位失败，请手动输入城市或检查权限。", weatherFailed: "天气获取失败，点击重试",
-    weatherLocationMissing: "未找到该城市", weatherApiFailed: "天气服务返回异常", locationSearchFailed: "位置搜索失败，请稍后重试", locationSelected: "已选择：{location}",
-    locationDetected: "识别到：{location}", confirmLocation: "确认位置", selectLocationFirst: "请先从下拉列表选择一个位置",
-    feelsLike: "体感", groupNamePlaceholder: "分组名称", dragSortTitle: "拖动排序", delLinkTitle: "删除链接",
-    editBtnTitle: "编辑", delGroupTitle: "删除分组", usernamePlaceholder: "输入您的名字", welcomeSkip: "Skip"
-  },
-  en: {
-    backup: "Configuration backup", includeApiKey: "Include weather API Key", exportKeyHint: "When selected, the exported file will contain the Key in plain text.", showApiKey: "Show API Key", hideApiKey: "Hide API Key",
-    settings: "Settings", inputLocation: "Enter your location", locPlaceholder: "Type a city and choose a match", saveLoc: "Save Location", useCurLoc: "Use Current Location",
-    addNewGroup: "Add New Group", customEngine: "Search Engines", apiKeySet: "API Key is Set", inputApiKey: "Enter QWeather API Key",
-    applyApiKey: 'Get a free API Key at <a href="https://dev.qweather.com" target="_blank" rel="noopener">dev.qweather.com</a>',
-    searchPlaceholder: "Search something...", searchWith: "Search with {name}", delGroupConfirm: "Delete this group and all its links?",
-    delLinkConfirm: "Delete this link?", delEngineConfirm: "Delete \"{name}\"?", editEngine: "Edit: {name}", engineName: "Name",
-    engineNamePlaceholder: "e.g., Google", engineUrl: "Search URL (e.g., just enter google.com)", engineUrlPlaceholder: "e.g., google.com",
-    save: "Save", back: "Back", addNewLink: "Add New Link", linkNamePlaceholder: "Site Name",
-    newGroupNamePrompt: "Enter new group name:", engineNameUrlEmpty: "Name and URL cannot be empty", keepOneEngine: "Keep at least one search engine",
-    yes: "Yes", no: "No", ok: "OK", cancel: "Cancel", exportConfig: "Export Config", importConfig: "Import Config", importSuccess: "Configuration imported", importFailed: "Invalid configuration file", importConfirm: "Importing will replace your current configuration. Continue?", needApiKey: "API Key is required for weather. Click the gear icon to set it.", clickToGetLoc: "Click to get location",
-    loading: "Loading...", locNotSupported: "Geolocation is not supported by your browser.", gettingLoc: "Getting current location...",
-    locFailed: "Location failed. Please enter manually or check permissions.", weatherFailed: "Weather failed. Click to retry",
-    weatherLocationMissing: "Location not found", weatherApiFailed: "Weather service error", locationSearchFailed: "Location search failed. Please try again.", locationSelected: "Selected: {location}",
-    locationDetected: "Detected: {location}", confirmLocation: "Confirm Location", selectLocationFirst: "Please choose a location from the list first",
-    feelsLike: "Feels", groupNamePlaceholder: "Group Name", dragSortTitle: "Drag to sort", delLinkTitle: "Delete Link",
-    editBtnTitle: "Edit", delGroupTitle: "Delete Group", usernamePlaceholder: "Enter your name", welcomeSkip: "Skip"
-  }
-};
-
-let currentLang = appStorage.getItem('lang') || 'zh';
-const reducedMotionQuery = window.matchMedia('(prefers-reduced-motion: reduce)');
-function t(key, params) {
-  let text = i18n[currentLang][key] || key;
-  if (params) for (let k in params) text = text.replaceAll(`{${k}}`, params[k]);
-  return text;
-}
-
-function getGreetingMsg() {
-  const hour = new Date().getHours();
-  let greetings;
-  if (hour < 5) greetings = ["up late, night owl?", "it's late, get some rest.", "still awake?"];
-  else if (hour < 9) greetings = ["early bird!", "good morning, early riser!", "ready for a new day?"];
-  else if (hour < 12) greetings = ["good morning!", "have a great morning!", "rise and shine!"];
-  else if (hour < 18) greetings = ["good afternoon!", "hope your day is going well!", "stay focused!"];
-  else if (hour < 22) greetings = ["good evening!", "time to wind down.", "hope you had a great day!"];
-  else greetings = ["good night!", "late night browsing?", "time to rest soon."];
-  return greetings[Math.floor(Math.random() * greetings.length)];
-}
-
-const ICONS = {
-  eye: '<svg viewBox="0 0 24 24"><path d="M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7S2 12 2 12Z"/><circle cx="12" cy="12" r="3"/></svg>',
-  eyeOff: '<svg viewBox="0 0 24 24"><path d="m3 3 18 18M10.6 5.1 12 5c6.5 0 10 7 10 7a18 18 0 0 1-3 3.8M6.3 6.3A20 20 0 0 0 2 12s3.5 7 10 7c1.9 0 3.6-.6 5-1.5M10 10a3 3 0 0 0 4 4"/></svg>',
-  bars: '<svg viewBox="0 0 24 24"><path d="M4 7h16"/><path d="M4 12h16"/><path d="M4 17h16"/></svg>',
-  check: '<svg viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg>',
-  cog: '<svg viewBox="0 0 24 24"><path d="M12 15.5a3.5 3.5 0 1 0 0-7 3.5 3.5 0 0 0 0 7Z"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 1 1-4 0v-.09a1.65 1.65 0 0 0-1-1.51 1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.6 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 1 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 8.92 4a1.65 1.65 0 0 0 1-1.51V2.4a2 2 0 1 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9c.14.47.5.84.96 1H21a2 2 0 1 1 0 4h-.09c-.46.16-.82.53-.96 1Z"/></svg>',
-  edit: '<svg viewBox="0 0 24 24"><path d="M17 3a2.83 2.83 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5L17 3Z"/></svg>',
-  folder: '<svg viewBox="0 0 24 24"><path d="M3 7a2 2 0 0 1 2-2h5l2 2h7a2 2 0 0 1 2 2v9a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2Z"/></svg>',
-  key: '<svg viewBox="0 0 24 24"><circle cx="7.5" cy="15.5" r="4.5"/><path d="M11 12l9-9"/><path d="M15 4l5 5"/><path d="M18 6l-2 2"/></svg>',
-  moon: '<svg viewBox="0 0 24 24"><path d="M21 12.8A8.5 8.5 0 1 1 11.2 3 6.5 6.5 0 0 0 21 12.8Z"/></svg>',
-  plus: '<svg viewBox="0 0 24 24"><path d="M12 5v14"/><path d="M5 12h14"/></svg>',
-  search: '<svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="7"/><path d="m21 21-4.3-4.3"/></svg>',
-  sun: '<svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="4"/><path d="M12 2v2"/><path d="M12 20v2"/><path d="m4.93 4.93 1.41 1.41"/><path d="m17.66 17.66 1.41 1.41"/><path d="M2 12h2"/><path d="M20 12h2"/><path d="m6.34 17.66-1.41 1.41"/><path d="m19.07 4.93-1.41 1.41"/></svg>',
-  trash: '<svg viewBox="0 0 24 24"><path d="M3 6h18"/><path d="M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6"/><path d="M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2"/></svg>',
-  user: '<svg viewBox="0 0 24 24"><path d="M20 21a8 8 0 1 0-16 0"/><circle cx="12" cy="7" r="4"/></svg>'
-};
-const ENGINE_ICON_URLS = {
-  google: 'assets/engine-icons/google.ico',
-  duckduckgo: 'assets/engine-icons/duckduckgo.ico',
-  baidu: 'assets/engine-icons/baidu.ico',
-  bing: 'assets/engine-icons/bing.ico',
-  yahoo: 'assets/engine-icons/yahoo.ico',
-  yandex: 'assets/engine-icons/yandex.ico',
-  bilibili: 'assets/engine-icons/bilibili.ico',
-  github: 'assets/engine-icons/github.svg',
-  zhihu: 'assets/engine-icons/zhihu.ico'
-};
-const ENGINE_ICON_CLASS_MAP = {
-  'brand:google': 'google',
-  'brand:duckduckgo': 'duckduckgo',
-  'brand:baidu': 'baidu',
-  'brand:bing': 'bing',
-  'brand:yahoo': 'yahoo',
-  'brand:yandex': 'yandex',
-  'brand:bilibili': 'bilibili',
-  'brand:github': 'github',
-  'brand:zhihu': 'zhihu',
-  search: 'search'
-};
-const ENGINE_PRESETS = [
-  { key: 'google', name: 'Google', url: 'https://www.google.com/search?q={query}', icon: 'brand:google', aliases: ['google', 'goog', '谷歌'] },
-  { key: 'duckduckgo', name: 'DuckDuckGo', url: 'https://duckduckgo.com/?q={query}', icon: 'brand:duckduckgo', aliases: ['duckduckgo', 'duckgo', 'ddg'] },
-  { key: 'baidu', name: 'Baidu', url: 'https://www.baidu.com/s?wd={query}', icon: 'brand:baidu', aliases: ['baidu', '百度'] },
-  { key: 'bing', name: 'Bing', url: 'https://www.bing.com/search?q={query}', icon: 'brand:bing', aliases: ['bing', '必应'] },
-  { key: 'yahoo', name: 'Yahoo', url: 'https://search.yahoo.com/search?p={query}', icon: 'brand:yahoo', aliases: ['yahoo', '雅虎'] },
-  { key: 'yandex', name: 'Yandex', url: 'https://yandex.com/search/?text={query}', icon: 'brand:yandex', aliases: ['yandex'] },
-  { key: 'bilibili', name: 'Bilibili', url: 'https://search.bilibili.com/all?keyword={query}', icon: 'brand:bilibili', aliases: ['bilibili', 'b站', '哔哩哔哩'] },
-  { key: 'github', name: 'GitHub', url: 'https://github.com/search?q={query}', icon: 'brand:github', aliases: ['github', 'gh'] },
-  { key: 'zhihu', name: 'Zhihu', url: 'https://www.zhihu.com/search?q={query}', icon: 'brand:zhihu', aliases: ['zhihu', '知乎'] }
-];
-function engineIconNameFromValue(value) { return ENGINE_ICON_CLASS_MAP[value] || 'search'; }
-function engineFromPreset(preset) {
-  return { id: preset.key, name: preset.name, url: preset.url, icon: preset.icon };
-}
-function normalizeEngineMatchText(value) {
-  return String(value || '').trim().toLowerCase();
-}
-function presetMatchesQuery(preset, query) {
-  const q = normalizeEngineMatchText(query);
-  if (!q) return false;
-  return [preset.key, preset.name, ...preset.aliases].some(value => normalizeEngineMatchText(value).includes(q));
-}
-function findExactEnginePresetByName(name) {
-  const q = normalizeEngineMatchText(name);
-  if (!q) return null;
-  return ENGINE_PRESETS.find(preset => [preset.key, preset.name, ...preset.aliases].some(value => normalizeEngineMatchText(value) === q))
-    || null;
-}
-function findEnginePresetByName(name) {
-  const q = normalizeEngineMatchText(name);
-  if (!q) return null;
-  return findExactEnginePresetByName(name)
-    || ENGINE_PRESETS.find(preset => presetMatchesQuery(preset, q))
-    || null;
-}
-function findEnginePresetByUrl(url) {
-  const domain = normalizeEngineMatchText(url).replace(/^https?:\/\//, '').replace(/^www\./, '').split('/')[0];
-  if (!domain) return null;
-  return ENGINE_PRESETS.find(preset => domain.includes(preset.key)) || null;
-}
-function getMatchingEnginePresets(query) {
-  return ENGINE_PRESETS.filter(preset => presetMatchesQuery(preset, query)).slice(0, 6);
-}
-function normalizeSearchEngineUrl(url) {
-  if (url.includes('{query}')) return url;
-  const preset = findEnginePresetByUrl(url);
-  if (preset) return preset.url;
-  const prefix = url.startsWith('http') ? '' : 'https://';
-  return `${prefix}${url}/search?q={query}`;
-}
-function iconForEngine(name, url) {
-  return (findEnginePresetByName(name) || findEnginePresetByUrl(url))?.icon || 'search';
-}
-function createIcon(name, className = '') {
-  const span = document.createElement('span');
-  span.className = className ? `ui-icon ${className}` : 'ui-icon';
-  span.dataset.icon = name;
-  span.innerHTML = ICONS[name] || ICONS.search;
-  return span;
-}
-function setIcon(el, name) {
-  el.classList.add('ui-icon');
-  el.dataset.icon = name;
-  el.innerHTML = ICONS[name] || ICONS.search;
-}
-function setEngineIcon(el, iconClassName) {
-  const name = engineIconNameFromValue(iconClassName);
-  if (el.dataset.engineIcon === name && el.firstElementChild) return;
-  el.classList.add('ui-icon');
-  el.classList.remove('engine-brand-icon');
-  el.removeAttribute('data-icon');
-  el.dataset.engineIcon = name;
-  el.innerHTML = '';
-
-  if (!ENGINE_ICON_URLS[name]) {
-    el.dataset.icon = 'search';
-    el.innerHTML = ICONS.search;
-    return;
-  }
-
-  const img = document.createElement('img');
-  img.src = ENGINE_ICON_URLS[name];
-  img.alt = '';
-  img.decoding = 'async';
-  img.loading = 'eager';
-  img.referrerPolicy = 'no-referrer';
-  img.onerror = () => {
-    el.classList.remove('engine-brand-icon');
-    el.dataset.icon = 'search';
-    el.innerHTML = ICONS.search;
-  };
-  el.classList.add('engine-brand-icon');
-  el.appendChild(img);
-}
-function createEngineIcon(iconClassName, className = '') {
-  const span = document.createElement('span');
-  span.className = className ? `ui-icon ${className}` : 'ui-icon';
-  setEngineIcon(span, iconClassName);
-  return span;
-}
-function hydrateStaticIcons() {
-  document.querySelectorAll('.ui-icon[data-icon]').forEach(el => setIcon(el, el.dataset.icon));
-}
-const themeToggleBtn = document.getElementById('theme-toggle-icon');
-
-function applyTheme(theme) {
-  const isDark = theme === 'dark';
-  document.body.classList.toggle('dark-mode', isDark);
-  document.documentElement.classList.toggle('dark-mode', isDark);
-  themeToggleBtn.replaceChildren(createIcon(isDark ? 'sun' : 'moon'));
-}
-
-themeToggleBtn.addEventListener('click', (e) => {
-  const isDark = document.body.classList.contains('dark-mode');
-  const newTheme = isDark ? 'light' : 'dark';
-  const x = e.clientX || window.innerWidth / 2; const y = e.clientY || window.innerHeight / 2;
-  document.documentElement.style.setProperty('--click-x', `${x}px`);
-  document.documentElement.style.setProperty('--click-y', `${y}px`);
-  if (reducedMotionQuery.matches || !document.startViewTransition) { appStorage.setItem('theme', newTheme); applyTheme(newTheme); return; }
-  const transitionClass = isDark ? 'theme-transition-shrink' : 'theme-transition-expand';
-  document.documentElement.classList.add(transitionClass);
-  const transition = document.startViewTransition(() => { appStorage.setItem('theme', newTheme); applyTheme(newTheme); });
-  transition.finished.finally(() => { document.documentElement.classList.remove('theme-transition-expand', 'theme-transition-shrink'); });
-});
-
 function updateAllTexts() {
   if (currentLang !== 'zh' && currentLang !== 'en') currentLang = 'zh';
   document.documentElement.lang = currentLang === 'zh' ? 'zh-CN' : 'en';
@@ -257,6 +32,18 @@ function updateAllTexts() {
   settingsIcon.setAttribute('aria-label', t('settings'));
   renderUsernameSection();
   renderApiKeySection();
+  updateSettingsStatus();
+  document.getElementById('weather-host-label').textContent = t('weatherHostLabel');
+  document.getElementById('weatherHostInput').value = appStorage.getItem('qweatherApiHost') || '';
+  document.getElementById('saveWeatherHostBtn').setAttribute('aria-label', t('save'));
+  weatherDisplay.setAttribute('aria-label', t('weatherSettings'));
+  themeToggleBtn.setAttribute('aria-label', t('toggleTheme'));
+  document.querySelectorAll('.close-btn').forEach(button => button.setAttribute('aria-label', t('close')));
+  document.getElementById('saveUsernameBtn').setAttribute('aria-label', t('save'));
+  document.getElementById('saveApiKeyBtn').setAttribute('aria-label', t('save'));
+  document.getElementById('editUsernameBtn').setAttribute('aria-label', t('editBtnTitle'));
+  document.getElementById('editApiKeyBtn').setAttribute('aria-label', t('editBtnTitle'));
+  if (enginesData.length) setSearchEngine(appStorage.getItem('searchEngine'));
 }
 
 function getApiKey() { return appStorage.getItem('qweatherApiKey') || ''; }
@@ -320,6 +107,40 @@ const importConfigInput = document.getElementById('importConfigInput');
 
 const DEFAULT_ENGINES = ['google', 'duckduckgo', 'baidu'].map(key => engineFromPreset(ENGINE_PRESETS.find(preset => preset.key === key)));
 let enginesData = [];
+let settingsView = { kind: 'groups' };
+let sortUnavailable = false;
+const conflictPrompt = () => customConfirm(t('storageConflict'));
+const groupStore = StartPageStore.create('siteData', StartPageData.groups, siteData, value => {
+  siteData = value; renderMainPageGroups(); refreshSettingsView();
+}, conflictPrompt);
+const engineStore = StartPageStore.create('enginesData', StartPageData.engines, DEFAULT_ENGINES, value => {
+  enginesData = value; renderEngineDropdown(); setSearchEngine(appStorage.getItem('searchEngine')); refreshSettingsView();
+}, conflictPrompt);
+function refreshSettingsView() {
+  if (settingsModal.style.display !== 'flex') return;
+  if (settingsView.kind === 'group') {
+    const group = siteData.find(item => item.id === settingsView.id);
+    if (group) { editGroup(group); return; }
+  }
+  if (settingsView.kind === 'engine-draft') return;
+  if (settingsView.kind === 'engines') { editEngines(); return; }
+  renderSettingsGroups();
+}
+function updateSettingsStatus() {
+  const recovery = appStorage.getItem('siteData.recovery') || appStorage.getItem('enginesData.recovery');
+  document.getElementById('settings-status').textContent = !appStorage.persistent ? t('storageTemporary') : recovery ? t('invalidConfig') : sortUnavailable ? t('sortUnavailable') : '';
+}
+window.addEventListener('startpage-storage-status', () => updateSettingsStatus());
+window.addEventListener('storage', event => {
+  if (event.key === 'siteData' || event.key === null) groupStore.receive();
+  if (event.key === 'enginesData' || event.key === null) engineStore.receive();
+  if (event.key === 'theme') applyTheme(appStorage.getItem('theme') || 'light');
+  if (event.key === 'lang') { currentLang = appStorage.getItem('lang') || 'zh'; updateAllTexts(); }
+  if (event.key === 'userName') { renderUsernameSection(); updateGreeting(); }
+  if (event.key === 'searchEngine') { setSearchEngine(appStorage.getItem('searchEngine')); renderEngineDropdown(); }
+  if (['qweatherApiKey', 'qweatherApiHost', 'weatherLocationData'].includes(event.key)) { renderApiKeySection(); initWeather(); }
+});
+window.addEventListener('pagehide', () => { groupStore.flush(); engineStore.flush(); });
 
 function initTheme() { const stored = appStorage.getItem('theme') || 'light'; applyTheme(stored); }
 function scheduleIdleTask(fn) {
@@ -334,46 +155,23 @@ function init() {
   loadSiteData();
   loadEnginesData();
   updateAllTexts();
-  updateGreeting();
   renderMainPageGroups();
   renderEngineDropdown();
   setSearchEngine(appStorage.getItem('searchEngine') || enginesData[0]?.id || 'google');
   handleFirstVisit();
   scheduleIdleTask(() => initWeather());
 }
-function loadSiteData() {
-  const stored = appStorage.getItem('siteData');
-  try {
-    const parsed = stored ? JSON.parse(stored) : null;
-    if (!Array.isArray(parsed)) return;
-    siteData = parsed.map(group => ({
-      title: String(group?.title || 'group'),
-      color: /^#[0-9a-f]{6}$/i.test(group?.color) ? group.color : '#ffa726',
-      links: Array.isArray(group?.links) ? group.links.map(link => ({ name: String(link?.name || ''), url: String(link?.url || '') })) : []
-    }));
-  } catch (e) { appStorage.removeItem('siteData'); }
-}
-function saveSiteData() { appStorage.setItem('siteData', JSON.stringify(siteData)); }
-function loadEnginesData() {
-  const stored = appStorage.getItem('enginesData');
-  try {
-    const parsed = stored ? JSON.parse(stored) : null;
-    enginesData = Array.isArray(parsed) ? parsed.filter(e => e && e.id && e.name && e.url) : JSON.parse(JSON.stringify(DEFAULT_ENGINES));
-  } catch (e) { enginesData = JSON.parse(JSON.stringify(DEFAULT_ENGINES)); }
-  if (!enginesData.length) enginesData = JSON.parse(JSON.stringify(DEFAULT_ENGINES));
-}
-function saveEnginesData() { appStorage.setItem('enginesData', JSON.stringify(enginesData)); }
+function loadSiteData() { siteData = groupStore.load(); }
+function saveSiteData(immediate = true) { return groupStore.save(siteData, immediate); }
+function loadEnginesData() { enginesData = engineStore.load(); }
+function saveEnginesData(immediate = true) { return engineStore.save(enginesData, immediate); }
 
-function normalizeLinkUrl(value) {
-  const url = String(value || '').trim();
-  if (!url) return '';
-  if (/^[a-z][a-z\d+.-]*:/i.test(url) && !/^https?:\/\//i.test(url) && !/^[^/:]+:\d+(?:[/?#]|$)/.test(url)) return '';
-  try {
-    const parsed = new URL(/^https?:\/\//i.test(url) ? url : `https://${url}`);
-    return /^https?:$/.test(parsed.protocol) ? parsed.href : '';
-  } catch (error) { return ''; }
-}
+function normalizeLinkUrl(value) { return StartPageData.linkUrl(value); }
+let groupsRenderSignature = '';
 function renderMainPageGroups() {
+  const signature = JSON.stringify(siteData);
+  if (signature === groupsRenderSignature && groupsContainer.childElementCount === siteData.length) return;
+  groupsRenderSignature = signature;
   groupsContainer.innerHTML = '';
   siteData.forEach(group => {
     const div = document.createElement('div');
@@ -425,28 +223,11 @@ function locationLookupValue(location) {
 function qweatherLang() {
   return currentLang === 'zh' ? 'zh-hans' : 'en';
 }
-async function fetchJson(url, timeout = 8000) {
-  const controller = new AbortController();
-  const timer = setTimeout(() => controller.abort(), timeout);
-  try {
-    const response = await fetch(url, { signal: controller.signal });
-    if (!response.ok) throw new Error(t('weatherApiFailed'));
-    return await response.json();
-  } catch (error) {
-    if (error.name === 'AbortError') throw new Error(t('locationSearchFailed'));
-    throw error;
-  } finally { clearTimeout(timer); }
-}
-async function lookupLocations(query, number = 6) {
-  const apiKey = getApiKey();
-  const value = locationLookupValue(query);
-  if (!apiKey || !value) return [];
-  const url = `https://geoapi.qweather.com/v2/city/lookup?location=${encodeURIComponent(value)}&number=${number}&lang=${qweatherLang()}&key=${apiKey}`;
-  const res = await fetchJson(url);
-  if (res.code && res.code !== '200') throw new Error(t('weatherApiFailed'));
-  return res.location || [];
-}
+const weatherClient = StartPageWeather.create({ storage: appStorage, getKey: getApiKey, getLang: qweatherLang, getHost: () => appStorage.getItem('qweatherApiHost') || '' });
+async function fetchJson(url, timeout = 8000) { return StartPageWeather.json(url, { timeout }); }
+async function lookupLocations(query, number = 6, signal) { return weatherClient.lookup(query, number, signal); }
 function initWeather() {
+  weatherClient.cancel();
   const key = getApiKey(), loc = getSavedWeatherLocation();
   if (!key) setWeatherMessage(t('needApiKey'), 'is-muted');
   else if (!loc) setWeatherMessage(t('clickToGetLoc'), 'is-prompt');
@@ -454,39 +235,18 @@ function initWeather() {
 }
 function clearWeatherCache() { appStorage.removeItem('weatherCache'); }
 async function fetchWeatherData(loc) {
-  const apiKey = getApiKey();
-  if (!apiKey) return;
-  const WEATHER_CACHE_TTL = 10 * 60 * 1000;
-  const fingerprint = apiKey.slice(-8);
-  const cached = appStorage.getItem('weatherCache');
-  if (cached) {
-    try {
-      const entry = JSON.parse(cached);
-      const currentId = weatherLocationValue(loc);
-      if (entry.locationId === currentId && entry.apiKeyFingerprint === fingerprint && Date.now() - entry.fetchedAt < WEATHER_CACHE_TTL) { applyWeatherData(entry.data); return; }
-    } catch (e) { /* ignore malformed cache */ }
-    clearWeatherCache();
-  }
   setWeatherMessage(t('loading'), 'is-prompt');
   try {
-    const selectedLocation = typeof loc === 'object' && loc.id ? loc : await lookupLocations(loc, 1).then(items => items[0]);
-    if (!selectedLocation) throw new Error(t('weatherLocationMissing'));
-    const locId = weatherLocationValue(selectedLocation);
-    appStorage.setItem('weatherLocationData', JSON.stringify(selectedLocation));
-    appStorage.setItem('weatherLocation', selectedLocation.name || locId);
-    const [curr, fore] = await Promise.all([
-      fetchJson(`https://devapi.qweather.com/v7/weather/now?location=${locId}&key=${apiKey}`),
-      fetchJson(`https://devapi.qweather.com/v7/weather/3d?location=${locId}&key=${apiKey}`)
-    ]);
-    if (curr.code !== '200' || fore.code !== '200' || !curr.now || !fore.daily?.[0]) throw new Error(t('weatherApiFailed'));
-    const data = { temp: Math.round(curr.now.temp), feelsLike: Math.round(curr.now.feelsLike), tempMax: fore.daily[0].tempMax, tempMin: fore.daily[0].tempMin };
-    applyWeatherData(data);
-    appStorage.setItem('weatherCache', JSON.stringify({ locationId: locId, apiKeyFingerprint: fingerprint, fetchedAt: Date.now(), data }));
-  } catch(e) {
-    console.error(e);
-    setWeatherMessage(e.message || t('weatherFailed'), 'is-error');
+    const result = await weatherClient.load(loc);
+    if (!result) return false;
+    applyWeatherData(result.data);
+    return true;
+  } catch (error) {
+    setWeatherMessage(t(error.message), 'is-error');
+    return false;
   }
 }
+
 function applyWeatherData(data) { weatherDisplay.classList.remove('is-muted', 'is-prompt', 'is-error'); weatherTemp.textContent = `${data.temp}°C`; weatherFeelsLike.textContent = `${t('feelsLike')} ${data.feelsLike}°C`; weatherHighLow.textContent = `H ${data.tempMax}°C / L ${data.tempMin}°C`; weatherFeelsLike.style.display = weatherHighLow.style.display = ''; }
 
 let selectedWeatherLocation = null;
@@ -538,38 +298,47 @@ function renderLocationSuggestions(locations) {
       hideLocationSuggestions();
       locationError.textContent = '';
     });
+    btn.onkeydown = event => {
+      if (!['ArrowUp', 'ArrowDown'].includes(event.key)) return;
+      event.preventDefault();
+      const options = [...locationSuggestions.querySelectorAll('button')];
+      const index = options.indexOf(btn), direction = event.key === 'ArrowDown' ? 1 : -1;
+      options[(index + direction + options.length) % options.length]?.focus();
+    };
     locationSuggestions.appendChild(btn);
   });
   locationSuggestions.classList.add('show');
   locationInput.setAttribute('aria-expanded', 'true');
 }
-const searchLocationSuggestions = debounce(async () => {
-  const query = locationInput.value.trim();
-  clearLocationPreview();
-  locationError.textContent = '';
-  if (query.length < 2) {
-    hideLocationSuggestions();
-    return;
-  }
-  const token = ++locationSearchToken;
+let locationSearchController;
+function cancelLocationSearch() {
+  locationSearchToken++;
+  locationSearchController?.abort();
+  searchLocationSuggestions.cancel();
+  hideLocationSuggestions();
+}
+const searchLocationSuggestions = debounce(async (query, token) => {
+  locationSearchController = new AbortController();
   try {
-    const locations = await lookupLocations(query, 6);
-    if (token !== locationSearchToken) return;
+    const locations = await lookupLocations(query, 6, locationSearchController.signal);
+    if (token !== locationSearchToken || locationModal.style.display !== 'flex') return;
     renderLocationSuggestions(locations);
-  } catch(e) {
-    if (token !== locationSearchToken) return;
-    console.error(e);
+  } catch (error) {
+    if (token !== locationSearchToken || error.name === 'AbortError') return;
     hideLocationSuggestions();
-    locationError.textContent = e.message || t('locationSearchFailed');
+    locationError.textContent = t(error.message);
   }
 }, 250);
+
 function resetLocationModal() {
+  cancelLocationSearch();
   const saved = getSavedWeatherLocation();
   locationInput.value = saved ? formatLocation(saved) : '';
   hideLocationSuggestions();
   clearLocationPreview();
   if (saved) setLocationPreview(saved);
   locationError.textContent = '';
+  useCurrentLocationBtn.disabled = false;
   useCurrentLocationBtn.textContent = t('useCurLoc');
 }
 async function confirmWeatherLocation(location) {
@@ -580,8 +349,8 @@ async function confirmWeatherLocation(location) {
   }
   clearWeatherCache();
   setWeatherMessage(t('loading'), 'is-prompt');
-  await fetchWeatherData(loc);
-  closeModal(locationModal);
+  if (await fetchWeatherData(loc)) closeModal(locationModal);
+  else locationError.textContent = weatherTemp.textContent;
 }
 
 function setSearchEngine(id) {
@@ -589,9 +358,13 @@ function setSearchEngine(id) {
   if (!eng) return;
   searchInput.placeholder = t('searchWith', {name: eng.name});
   setEngineIcon(currentEngineIcon, eng.icon);
-  appStorage.setItem('searchEngine', eng.id);
+  if (appStorage.getItem('searchEngine') !== eng.id) appStorage.setItem('searchEngine', eng.id);
 }
+let enginesRenderSignature = '';
 function renderEngineDropdown() {
+  const signature = JSON.stringify([enginesData, appStorage.getItem('searchEngine')]);
+  if (signature === enginesRenderSignature && engineList.childElementCount === enginesData.length) return;
+  enginesRenderSignature = signature;
   engineList.innerHTML = '';
   enginesData.forEach(eng => {
     const li = document.createElement('li');
@@ -628,7 +401,12 @@ function renderApiKeySection() { const key = getApiKey(); if (key) { document.ge
 
 document.querySelectorAll('[data-svg="edit"]').forEach(el => { el.replaceChildren(createIcon('edit')); el.removeAttribute('data-svg'); });
 document.querySelectorAll('[data-svg="check"]').forEach(el => { el.replaceChildren(createIcon('check')); el.removeAttribute('data-svg'); });
-function debounce(f, d) { let t; return (...a) => { clearTimeout(t); t = setTimeout(() => f(...a), d); }; }
+function debounce(fn, delay) {
+  let timer;
+  const debounced = (...args) => { clearTimeout(timer); timer = setTimeout(() => fn(...args), delay); };
+  debounced.cancel = () => clearTimeout(timer);
+  return debounced;
+}
 function getFocusableElements(container) {
   return [...container.querySelectorAll('a[href], button:not([disabled]), input:not([disabled]), select:not([disabled]), textarea:not([disabled]), [tabindex]:not([tabindex="-1"])')]
     .filter(el => el.offsetParent !== null || el === document.activeElement);
@@ -637,11 +415,19 @@ const modalStack = [];
 function getActiveModal() {
   return modalStack[modalStack.length - 1]?.modal || null;
 }
+function syncModalInteractivity() {
+  const active = getActiveModal();
+  for (const child of document.body.children) {
+    if (child.tagName === 'SCRIPT') continue;
+    child.inert = Boolean(active && child !== active);
+  }
+}
 function openModal(modal, focusTarget) {
   const existingIndex = modalStack.findIndex(entry => entry.modal === modal);
   if (existingIndex >= 0) modalStack.splice(existingIndex, 1);
   modalStack.push({ modal, returnFocus: document.activeElement instanceof HTMLElement ? document.activeElement : null });
   modal.style.display = 'flex';
+  syncModalInteractivity();
   const focusable = getFocusableElements(modal);
   (focusTarget || focusable[0] || modal).focus({ preventScroll: true });
 }
@@ -649,6 +435,7 @@ function closeModal(modal, options = {}) {
   modal.style.display = 'none';
   const index = modalStack.findIndex(entry => entry.modal === modal);
   const entry = index >= 0 ? modalStack.splice(index, 1)[0] : null;
+  syncModalInteractivity();
   if (!options.keepFocus && entry?.returnFocus?.isConnected) entry.returnFocus.focus({ preventScroll: true });
 }
 function closeOnBackdropClick(modal, onClose) {
@@ -686,6 +473,7 @@ function customConfirm(m) { return new Promise(res => { customConfirmMessage.tex
 function customInput(title, initial = '') {
   return new Promise(resolve => {
     customInputTitle.textContent = title;
+  customInputValue.maxLength = StartPageData.limits.text;
     customInputValue.value = initial;
     openModal(customInputModal, customInputValue);
     const finish = value => { closeModal(customInputModal); resolve(value); };
@@ -711,11 +499,20 @@ function openWeatherAction() {
 }
 weatherDisplay.onclick = openWeatherAction;
 weatherDisplay.onkeydown = e => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); openWeatherAction(); } };
-locCloseButton.onclick = () => closeModal(locationModal);
+locCloseButton.onclick = () => { cancelLocationSearch(); closeModal(locationModal); };
 closeOnBackdropClick(locationModal, () => locCloseButton.onclick());
-locationInput.addEventListener('input', searchLocationSuggestions);
+locationInput.addEventListener('input', () => {
+  cancelLocationSearch(); clearLocationPreview(); locationError.textContent = '';
+  const query = locationInput.value.trim();
+  if (query.length >= 2) searchLocationSuggestions(query, locationSearchToken);
+});
 locationInput.addEventListener('keydown', e => {
-  if (e.key !== 'Enter') return;
+  if (e.key === 'ArrowDown' || e.key === 'ArrowUp') {
+    const options = [...locationSuggestions.querySelectorAll('button')];
+    if (options.length) { e.preventDefault(); options[e.key === 'ArrowDown' ? 0 : options.length - 1].focus(); }
+    return;
+  }
+  if (e.key !== 'Enter' || e.isComposing) return;
   e.preventDefault();
   const firstSuggestion = locationSuggestions.querySelector('.location-suggestion:not(.location-suggestion-empty)');
   if (firstSuggestion && locationSuggestions.classList.contains('show')) {
@@ -728,23 +525,29 @@ saveLocationBtn.onclick = () => confirmWeatherLocation();
 useCurrentLocationBtn.onclick = () => {
   locationError.textContent = '';
   if (!navigator.geolocation) { locationError.textContent = t('locNotSupported'); return; }
+  cancelLocationSearch();
+  const token = locationSearchToken;
+  useCurrentLocationBtn.disabled = true;
   useCurrentLocationBtn.textContent = t('gettingLoc');
   navigator.geolocation.getCurrentPosition(
     async p => {
       try {
         const locations = await lookupLocations({ lat: p.coords.latitude, lon: p.coords.longitude }, 1);
         if (!locations[0]) throw new Error(t('weatherLocationMissing'));
+        if (token !== locationSearchToken || locationModal.style.display !== 'flex') return;
         locationInput.value = formatLocation(locations[0]);
         setLocationPreview(locations[0], 'detected');
         hideLocationSuggestions();
       } catch(e) {
-        console.error(e);
-        locationError.textContent = e.message || t('locFailed');
+        if (token === locationSearchToken) locationError.textContent = t(e.message) || t('locFailed');
       } finally {
+        useCurrentLocationBtn.disabled = false;
         useCurrentLocationBtn.textContent = t('useCurLoc');
       }
     },
     () => {
+      useCurrentLocationBtn.disabled = false;
+      if (token !== locationSearchToken) return;
       locationError.textContent = t('locFailed');
       setWeatherMessage(t('locFailed'), 'is-error');
       useCurrentLocationBtn.textContent = t('useCurLoc');
@@ -753,14 +556,26 @@ useCurrentLocationBtn.onclick = () => {
   );
 };
 settingsIcon.onclick = async () => { await renderSettingsGroups(); openModal(settingsModal, settingsGroupsContainer.querySelector('input, button') || settingsCloseButton); };
-settingsCloseButton.onclick = () => { setApiKeyVisible(false); closeModal(settingsModal); saveSiteData(); renderMainPageGroups(); };
+settingsCloseButton.onclick = () => {
+  if (!groupStore.flush() || !engineStore.flush()) return;
+  setApiKeyVisible(false); closeModal(settingsModal); renderMainPageGroups();
+};
 closeOnBackdropClick(settingsModal, () => settingsCloseButton.onclick());
 document.getElementById('langToggleBtnSettings').onclick = () => { currentLang = currentLang === 'zh' ? 'en' : 'zh'; appStorage.setItem('lang', currentLang); updateAllTexts(); initWeather(); };
 document.getElementById('saveUsernameBtn').onclick = () => { appStorage.setItem('userName', document.getElementById('usernameInput').value.trim()); renderUsernameSection(); updateGreeting(); };
-document.getElementById('editUsernameBtn').onclick = () => { document.getElementById('username-saved-mode').style.display = 'none'; document.getElementById('username-edit-mode').style.display = 'flex'; };
+document.getElementById('editUsernameBtn').onclick = () => { const input = document.getElementById('usernameInput'); input.value = getUserName(); document.getElementById('username-saved-mode').style.display = 'none'; document.getElementById('username-edit-mode').style.display = 'flex'; input.focus(); };
 document.getElementById('saveApiKeyBtn').onclick = () => { appStorage.setItem('qweatherApiKey', apiKeyInput.value.trim()); setApiKeyVisible(false); clearWeatherCache(); initWeather(); renderApiKeySection(); };
 document.getElementById('editApiKeyBtn').onclick = () => { apiKeyInput.value = getApiKey(); setApiKeyVisible(false); document.getElementById('api-key-saved-mode').style.display = 'none'; document.getElementById('api-key-edit-mode').style.display = 'flex'; apiKeyInput.focus(); };
 
+document.getElementById('saveWeatherHostBtn').onclick = () => {
+  const input = document.getElementById('weatherHostInput');
+  try {
+    const host = StartPageData.weatherHost(input.value.trim());
+    appStorage.setItem('qweatherApiHost', host); input.value = host;
+    document.getElementById('weatherHostError').textContent = '';
+    clearWeatherCache(); initWeather();
+  } catch { document.getElementById('weatherHostError').textContent = t('weatherHostInvalid'); }
+};
 function setEngineListOpen(open) {
   engineList.classList.toggle('show', open);
   searchEngineSelector.setAttribute('aria-expanded', String(open));
@@ -771,32 +586,29 @@ searchEngineSelector.onkeydown = e => {
   if (e.key === 'ArrowDown') { e.preventDefault(); setEngineListOpen(true); engineList.querySelector('li')?.focus(); }
 };
 document.addEventListener('click', () => setEngineListOpen(false));
-function isDirectNavigationTarget(value) {
-  return /^https?:\/\//i.test(value)
-    || /^(localhost)(:\d+)?([/?#].*)?$/i.test(value)
-    || /^(\d{1,3}\.){3}\d{1,3}(:\d+)?([/?#].*)?$/.test(value)
-    || /^\[[0-9a-f:]+\](:\d+)?([/?#].*)?$/i.test(value)
-    || /^[^\s]+\.[a-z]{2,}([:/?#].*)?$/i.test(value);
-}
+function isDirectNavigationTarget(value) { return Boolean(StartPageData.navigationUrl(value)); }
 searchForm.onsubmit = e => {
   e.preventDefault();
   const q = searchInput.value.trim();
   if (!q) return;
-  if (isDirectNavigationTarget(q)) { window.open(/^https?:\/\//i.test(q) ? q : 'https://' + q, '_blank', 'noopener'); return; }
+  const destination = StartPageData.navigationUrl(q);
+  if (destination) { window.open(destination, '_blank', 'noopener'); return; }
   const eng = enginesData.find(item => item.id === appStorage.getItem('searchEngine')) || enginesData[0];
-  window.open(eng.url.replace('{query}', encodeURIComponent(q)), '_blank', 'noopener');
+  window.open(eng.url.replaceAll('{query}', encodeURIComponent(q)), '_blank', 'noopener');
 };
 
 addNewGroupBtn.addEventListener('click', async () => {
   const name = await customInput(t('newGroupNamePrompt'));
   if (!name) return;
-  siteData.push({ title: name, color: '#ffa726', links: [] });
+  if (siteData.length >= StartPageData.limits.groups) { customNotice(t('importFailed')); return; }
+  siteData.push({ id: StartPageData.id(), title: name.slice(0, StartPageData.limits.text), color: '#ffa726', links: [] });
   saveSiteData(); renderSettingsGroups(); renderMainPageGroups();
   setTimeout(() => settingsGroupsContainer.scrollTop = settingsGroupsContainer.scrollHeight, 100);
 });
 document.getElementById('editEnginesBtn').addEventListener('click', editEngines);
 
 async function editEngines() {
+  settingsView = { kind: 'engines' };
   document.querySelector('.group-color-field')?.remove();
   await ensureSortable();
   settingsTitle.textContent = t('customEngine'); settingsActions.style.display = 'none'; globalSettingsSection.style.display = 'none'; document.getElementById('langToggleBtnSettings').style.display = 'none';
@@ -805,22 +617,22 @@ async function editEngines() {
     enginesData.forEach((eng, idx) => {
       const d = document.createElement('div'); d.className = 'setting-item group-item';
       const name = document.createElement('span'); name.className = 'engine-name'; name.textContent = eng.name;
-      const editBtn = document.createElement('button'); editBtn.className = 'btn btn-icon edit-eng-btn'; editBtn.appendChild(createIcon('edit'));
-      const delBtn = document.createElement('button'); delBtn.className = 'btn btn-icon btn-danger del-eng-btn'; delBtn.appendChild(createIcon('trash'));
+      const editBtn = document.createElement('button'); editBtn.className = 'btn btn-icon edit-eng-btn'; editBtn.setAttribute('aria-label', t('editEngine', { name: eng.name })); editBtn.appendChild(createIcon('edit'));
+      const delBtn = document.createElement('button'); delBtn.className = 'btn btn-icon btn-danger del-eng-btn'; delBtn.setAttribute('aria-label', t('delEngineConfirm', { name: eng.name })); delBtn.appendChild(createIcon('trash'));
       d.append(createIcon('bars', 'handle'), createEngineIcon(eng.icon, 'engine-icon'), name, editBtn, delBtn);
       settingsGroupsContainer.appendChild(d);
-      d.querySelector('.edit-eng-btn').addEventListener('click', () => editSingleEngine(idx, renderEngineList));
-      d.querySelector('.del-eng-btn').addEventListener('click', async () => { if (enginesData.length <= 1) { customNotice(t('keepOneEngine')); return; } if (await customConfirm(t('delEngineConfirm', {name: eng.name}))) { enginesData.splice(idx, 1); saveEnginesData(); renderEngineDropdown(); if (appStorage.getItem('searchEngine') === eng.id) setSearchEngine(enginesData[0].id); renderEngineList(); } });
+      d.querySelector('.edit-eng-btn').addEventListener('click', () => editSingleEngine(eng.id, renderEngineList));
+      d.querySelector('.del-eng-btn').addEventListener('click', async () => { if (enginesData.length <= 1) { customNotice(t('keepOneEngine')); return; } if (await customConfirm(t('delEngineConfirm', {name: eng.name}))) { if (enginesData.findIndex(item => item.id === eng.id) < 0) return; enginesData.splice(enginesData.findIndex(item => item.id === eng.id), 1); saveEnginesData(); renderEngineDropdown(); if (appStorage.getItem('searchEngine') === eng.id) setSearchEngine(enginesData[0].id); renderEngineList(); } });
     });
     const actions = document.createElement('div'); actions.className = 'settings-inline-actions';
-    const addEngBtn = document.createElement('button'); addEngBtn.id = 'addEngBtn'; addEngBtn.className = 'btn btn-primary'; addEngBtn.append(createIcon('plus'), document.createTextNode(` ${t('customEngine')}`));
+    const addEngBtn = document.createElement('button'); addEngBtn.id = 'addEngBtn'; addEngBtn.className = 'btn btn-primary'; addEngBtn.append(createIcon('plus'), document.createTextNode(` ${t('newEngine')}`));
     const backFromEng = document.createElement('button'); backFromEng.id = 'backFromEng'; backFromEng.className = 'btn btn-secondary'; backFromEng.textContent = t('back');
     actions.replaceChildren(addEngBtn, backFromEng);
     settingsGroupsContainer.appendChild(actions);
-    document.getElementById('addEngBtn').onclick = () => { const newId = 'custom_' + Date.now(); enginesData.push({ id: newId, name: 'New Engine', url: 'https://example.com/search?q={query}', icon: 'search' }); saveEnginesData(); renderEngineDropdown(); renderEngineList(); setTimeout(() => editSingleEngine(enginesData.length - 1, renderEngineList), 50); };
+    document.getElementById('addEngBtn').onclick = () => editSingleEngine(null, renderEngineList);
     document.getElementById('backFromEng').onclick = () => { saveEnginesData(); renderEngineDropdown(); setSearchEngine(appStorage.getItem('searchEngine') || enginesData[0]?.id); renderSettingsGroups(); };
     if (sortableInst) sortableInst.destroy();
-    sortableInst = new Sortable(settingsGroupsContainer, {
+    sortableInst = makeSortable(settingsGroupsContainer, {
       handle: '.handle', animation: reducedMotionQuery.matches ? 0 : 150,
       forceFallback: true,
       fallbackClass: 'sortable-fallback',
@@ -828,8 +640,9 @@ async function editEngines() {
       chosenClass: 'sortable-chosen',
       draggable: '.group-item',
       filter: '#addEngBtn, #backFromEng',
-      onEnd: e => { const item = enginesData.splice(e.oldDraggableIndex, 1)[0]; enginesData.splice(e.newDraggableIndex, 0, item); saveEnginesData(); renderEngineDropdown(); }
+      onEnd: e => { const item = enginesData.splice(e.oldDraggableIndex, 1)[0]; enginesData.splice(e.newDraggableIndex, 0, item); saveEnginesData(); renderEngineDropdown(); renderEngineList(); }
     });
+    enableKeyboardSorting(settingsGroupsContainer, enginesData, () => { saveEnginesData(); renderEngineDropdown(); renderEngineList(); });
   };
   renderEngineList();
 }
@@ -869,8 +682,11 @@ function renderEnginePresetSuggestions(query, container, onSelect) {
   container.classList.add('show');
 }
 
-function editSingleEngine(idx, onBack) {
-  const eng = enginesData[idx]; settingsTitle.textContent = t('editEngine', {name: eng.name}); document.getElementById('langToggleBtnSettings').style.display = 'none';
+function editSingleEngine(engineId, onBack) {
+  const eng = enginesData.find(item => item.id === engineId) || { id: StartPageData.id(), name: '', url: '', icon: 'search' };
+  const originalEngine = engineId ? JSON.stringify(eng) : null;
+  settingsView = { kind: 'engine-draft', id: engineId };
+  settingsTitle.textContent = engineId ? t('editEngine', {name: eng.name}) : t('newEngine'); document.getElementById('langToggleBtnSettings').style.display = 'none';
   settingsGroupsContainer.innerHTML = '';
   const form = document.createElement('div'); form.className = 'settings-form-stack';
   const nameField = document.createElement('div'); nameField.className = 'settings-field engine-preset-field';
@@ -882,6 +698,8 @@ function editSingleEngine(idx, onBack) {
   const urlLabel = document.createElement('label'); urlLabel.textContent = t('engineUrl');
   const urlInput = document.createElement('input'); urlInput.type = 'text'; urlInput.className = 'setting-input standalone-input full-width'; urlInput.id = 'engEditUrl'; urlInput.value = eng.url; urlInput.placeholder = t('engineUrlPlaceholder');
   urlField.append(urlLabel, urlInput);
+  nameLabel.htmlFor = nameInput.id; urlLabel.htmlFor = urlInput.id;
+  nameInput.maxLength = StartPageData.limits.text; urlInput.maxLength = StartPageData.limits.url;
   form.append(nameField, urlField);
   const actions = document.createElement('div'); actions.className = 'settings-actions-stack';
   const saveBtn = document.createElement('button'); saveBtn.id = 'saveEngBtn'; saveBtn.className = 'btn btn-primary'; saveBtn.append(createIcon('check'), document.createTextNode(` ${t('save')}`));
@@ -903,7 +721,7 @@ function editSingleEngine(idx, onBack) {
     if (e.key === 'Escape') hideEnginePresetSuggestions(enginePresetSuggestions);
   });
   nameInput.addEventListener('blur', () => setTimeout(() => hideEnginePresetSuggestions(enginePresetSuggestions), 120));
-  document.getElementById('saveEngBtn').onclick = () => {
+  document.getElementById('saveEngBtn').onclick = async () => {
     let name = document.getElementById('engEditName').value.trim(); let url  = document.getElementById('engEditUrl').value.trim();
     const exactPreset = findExactEnginePresetByName(name);
     if (exactPreset && !url) {
@@ -912,16 +730,23 @@ function editSingleEngine(idx, onBack) {
     }
     if (!name || !url) { customNotice(t('engineNameUrlEmpty')); return; }
     url = normalizeSearchEngineUrl(url);
-    try {
-      const testUrl = new URL(url.replace('{query}', 'test'));
-      if (!/^https?:$/.test(testUrl.protocol)) throw new Error();
-    } catch (error) { customNotice(t('engineNameUrlEmpty')); return; }
+    try { StartPageData.engines([{ ...eng, name, url }]); }
+    catch { customNotice(t('invalidEngine')); return; }
     const preset = exactPreset || findEnginePresetByUrl(url);
     if (exactPreset) name = exactPreset.name;
     const i = preset?.icon || iconForEngine(name, url);
-    enginesData[idx] = { ...eng, name, url, icon: i }; saveEnginesData(); renderEngineDropdown(); if (appStorage.getItem('searchEngine') === eng.id) setSearchEngine(eng.id); onBack();
+    const idx = enginesData.findIndex(item => item.id === eng.id);
+    if (engineId && idx < 0) { customNotice(t('storageConflict')); return; }
+    if (engineId && JSON.stringify(enginesData[idx]) !== originalEngine && !await customConfirm(t('storageConflict'))) { settingsView = { kind: 'engines' }; onBack(); return; }
+    const updated = { ...eng, name, url, icon: i };
+    if (idx < 0) {
+      if (enginesData.length >= StartPageData.limits.engines) { customNotice(t('importFailed')); return; }
+      enginesData.push(updated);
+    } else enginesData[idx] = updated;
+    saveEnginesData(); renderEngineDropdown(); if (appStorage.getItem('searchEngine') === eng.id) setSearchEngine(eng.id);
+    settingsView = { kind: 'engines' }; onBack();
   };
-  document.getElementById('backFromSingleEng').onclick = onBack;
+  document.getElementById('backFromSingleEng').onclick = () => { settingsView = { kind: 'engines' }; onBack(); };
   setTimeout(() => { nameInput.focus({ preventScroll: true }); nameInput.select(); }, 0);
 }
 
@@ -930,17 +755,44 @@ let sortableLoadPromise = null;
 function ensureSortable() {
   if (window.Sortable) return Promise.resolve(window.Sortable);
   if (!sortableLoadPromise) {
-    sortableLoadPromise = new Promise((resolve, reject) => {
+    sortableLoadPromise = new Promise(resolve => {
       const script = document.createElement('script');
+      const finish = value => { clearTimeout(timer); resolve(value); };
+      const timer = setTimeout(() => { script.remove(); finish(null); }, 3000);
       script.src = 'Sortable.min.js';
-      script.onload = () => resolve(window.Sortable);
-      script.onerror = () => reject(new Error('Failed to load Sortable.min.js'));
+      script.onload = () => finish(window.Sortable || null);
+      script.onerror = () => finish(null);
       document.head.appendChild(script);
+    }).then(value => {
+      sortUnavailable = !value; updateSettingsStatus();
+      if (!value) sortableLoadPromise = null;
+      return value;
     });
   }
   return sortableLoadPromise;
 }
+function makeSortable(container, options) {
+  if (!window.Sortable) return null;
+  return new Sortable(container, options);
+}
+function enableKeyboardSorting(container, items, onChange) {
+  container.querySelectorAll('.handle').forEach((handle, index) => {
+    handle.tabIndex = 0; handle.removeAttribute('aria-hidden');
+    handle.setAttribute('role', 'button'); handle.setAttribute('aria-label', t('sortKeyboard')); handle.title = t('sortKeyboard');
+    handle.onkeydown = event => {
+      if (!event.altKey || !['ArrowUp', 'ArrowDown'].includes(event.key)) return;
+      event.preventDefault();
+      const next = index + (event.key === 'ArrowUp' ? -1 : 1);
+      if (next < 0 || next >= items.length) return;
+      [items[index], items[next]] = [items[next], items[index]];
+      onChange();
+      requestAnimationFrame(() => container.querySelectorAll('.handle')[next]?.focus());
+    };
+  });
+}
 async function renderSettingsGroups() {
+  settingsView = { kind: 'groups' };
+  updateSettingsStatus();
   document.querySelector('.group-color-field')?.remove();
   settingsTitle.textContent = t('settings'); globalSettingsSection.style.display = "flex"; settingsActions.style.display = "flex"; document.getElementById('langToggleBtnSettings').style.display = 'flex';
   settingsGroupsContainer.innerHTML = '';
@@ -952,7 +804,8 @@ async function renderSettingsGroups() {
     const delBtn = document.createElement('button'); delBtn.className = 'btn btn-icon btn-danger del-btn'; delBtn.title = delBtn.setAttribute('aria-label', t('delGroupTitle')) || t('delGroupTitle'); delBtn.appendChild(createIcon('trash'));
     const handle = createIcon('bars', 'handle'); handle.title = t('dragSortTitle'); handle.setAttribute('aria-hidden', 'true');
     div.append(handle, input, editBtn, delBtn);
-    input.oninput = e => { g.title = e.target.value; saveSiteData(); };
+    input.maxLength = StartPageData.limits.text;
+    input.oninput = e => { g.title = e.target.value; saveSiteData(false); };
     editBtn.onclick = () => editGroup(g);
     delBtn.onclick = async () => {
       if (await customConfirm(t('delGroupConfirm'))) {
@@ -969,18 +822,23 @@ async function renderSettingsGroups() {
   });
   await ensureSortable();
   if (sortableInst) sortableInst.destroy();
-  sortableInst = new Sortable(settingsGroupsContainer, {
+  sortableInst = makeSortable(settingsGroupsContainer, {
     handle: '.handle', animation: reducedMotionQuery.matches ? 0 : 150,
     forceFallback: true,
     fallbackClass: 'sortable-fallback',
     ghostClass: 'sortable-ghost',
     chosenClass: 'sortable-chosen',
     draggable: '.group-item',
-    onEnd: e => { const item = siteData.splice(e.oldDraggableIndex, 1)[0]; siteData.splice(e.newDraggableIndex, 0, item); saveSiteData(); renderMainPageGroups(); }
+    onEnd: e => { const item = siteData.splice(e.oldDraggableIndex, 1)[0]; siteData.splice(e.newDraggableIndex, 0, item); saveSiteData(); renderMainPageGroups(); renderSettingsGroups(); }
   });
+  enableKeyboardSorting(settingsGroupsContainer, siteData, () => { saveSiteData(); renderMainPageGroups(); renderSettingsGroups(); });
 }
 
 async function editGroup(group) {
+  if (!groupStore.flush()) return;
+  group = siteData.find(item => item.id === group.id);
+  if (!group) return renderSettingsGroups();
+  settingsView = { kind: 'group', id: group.id };
   await ensureSortable();
   const g = group;
   settingsTitle.textContent = ''; globalSettingsSection.style.display = "none"; settingsActions.style.display = "none"; document.getElementById('langToggleBtnSettings').style.display = 'none';
@@ -1013,9 +871,17 @@ async function editGroup(group) {
       const urlInput = document.createElement('input'); urlInput.type = 'text'; urlInput.className = 'setting-input link-url-input'; urlInput.value = l.url; urlInput.placeholder = 'URL';
       const delBtn = document.createElement('button'); delBtn.className = 'btn btn-icon btn-danger'; delBtn.title = t('delLinkTitle'); delBtn.setAttribute('aria-label', t('delLinkTitle')); delBtn.appendChild(createIcon('trash'));
       d.append(createIcon('bars', 'handle'), nameInput, divider, urlInput, delBtn);
-      nameInput.oninput = e => { l.name = e.target.value; saveSiteData(); };
-      urlInput.oninput = e => { l.url = e.target.value; saveSiteData(); };
-      urlInput.onblur = () => { l.url = normalizeLinkUrl(l.url); urlInput.value = l.url; saveSiteData(); renderMainPageGroups(); };
+      nameInput.maxLength = StartPageData.limits.text; urlInput.maxLength = StartPageData.limits.url;
+      nameInput.setAttribute('aria-label', t('linkNamePlaceholder')); urlInput.setAttribute('aria-label', 'URL');
+      nameInput.oninput = e => { l.name = e.target.value; saveSiteData(false); };
+      urlInput.oninput = () => { urlInput.setCustomValidity(''); urlInput.removeAttribute('aria-invalid'); };
+      urlInput.onblur = () => {
+        const value = urlInput.value.trim(), normalized = normalizeLinkUrl(value);
+        if (value && !normalized) {
+          urlInput.setCustomValidity(t('invalidUrl')); urlInput.setAttribute('aria-invalid', 'true'); urlInput.reportValidity(); return;
+        }
+        l.url = normalized; urlInput.value = normalized; saveSiteData(); renderMainPageGroups();
+      };
       delBtn.onclick = async () => {
         if (await customConfirm(t('delLinkConfirm'))) {
           const linkIdx = g.links.indexOf(l);
@@ -1029,18 +895,22 @@ async function editGroup(group) {
       list.appendChild(d);
     });
     if (sortableInst) sortableInst.destroy();
-    sortableInst = new Sortable(list, {
+    sortableInst = makeSortable(list, {
       handle: '.handle', animation: reducedMotionQuery.matches ? 0 : 150,
       forceFallback: true,
       fallbackClass: 'sortable-fallback',
       ghostClass: 'sortable-ghost',
       chosenClass: 'sortable-chosen',
       draggable: '.link-item',
-      onEnd: e => { const item = g.links.splice(e.oldDraggableIndex, 1)[0]; g.links.splice(e.newDraggableIndex, 0, item); saveSiteData(); renderMainPageGroups(); }
+      onEnd: e => { const item = g.links.splice(e.oldDraggableIndex, 1)[0]; g.links.splice(e.newDraggableIndex, 0, item); saveSiteData(); renderMainPageGroups(); render(); }
     });
+    enableKeyboardSorting(list, g.links, () => { saveSiteData(); renderMainPageGroups(); render(); });
   };
   render();
-  document.getElementById('addL').onclick = () => { g.links.push({name:'', url:''}); saveSiteData(); render(); };
+  document.getElementById('addL').onclick = () => {
+    if (siteData.reduce((sum, item) => sum + item.links.length, 0) >= StartPageData.limits.links) { customNotice(t('importFailed')); return; }
+    g.links.push({id: StartPageData.id(), name:'', url:''}); saveSiteData(); render();
+  };
   document.getElementById('backG').onclick = renderSettingsGroups;
 }
 
@@ -1048,119 +918,67 @@ function createConfigSnapshot(withApiKey = false) {
   const location = getSavedWeatherLocation();
   const activeEngine = enginesData.find(engine => engine.id === appStorage.getItem('searchEngine')) || enginesData[0];
   const settings = {
-    siteData: JSON.stringify(siteData),
-    enginesData: JSON.stringify(enginesData),
+    siteData: StartPageData.groups(siteData),
+    enginesData: StartPageData.engines(enginesData),
     theme: document.body.classList.contains('dark-mode') ? 'dark' : 'light',
     lang: currentLang,
     userName: getUserName(),
-    weatherLocationData: JSON.stringify(location),
+    weatherLocationData: location,
     weatherLocation: location?.name || '',
+    qweatherApiHost: appStorage.getItem('qweatherApiHost') || '',
     searchEngine: activeEngine.id
   };
   if (withApiKey) settings.qweatherApiKey = getApiKey();
-  return { schemaVersion: 1, exportedAt: new Date().toISOString(), settings };
+  return { schemaVersion: 2, exportedAt: new Date().toISOString(), settings };
 }
 function exportConfig(withApiKey = false) {
+  if (!groupStore.flush() || !engineStore.flush()) return false;
   const blob = new Blob([JSON.stringify(createConfigSnapshot(withApiKey), null, 2)], { type: 'application/json' });
   const link = document.createElement('a');
   link.href = URL.createObjectURL(blob); link.download = 'startpage-config.json'; link.click();
-  setTimeout(() => URL.revokeObjectURL(link.href), 0);
+  setTimeout(() => URL.revokeObjectURL(link.href), 1000);
+  return true;
 }
-function validateImportedSettings(data) {
-  const isObject = value => value !== null && typeof value === 'object' && !Array.isArray(value);
-  const isText = value => typeof value === 'string';
-  if (data?.schemaVersion !== 1 || !isObject(data.settings)) throw new Error('Invalid configuration');
-  const allowed = ['siteData', 'enginesData', 'theme', 'lang', 'userName', 'weatherLocationData', 'weatherLocation', 'searchEngine', 'qweatherApiKey'];
-  const settings = Object.fromEntries(Object.entries(data.settings).filter(([key]) => allowed.includes(key)));
-  if (!Object.keys(settings).length || !Object.values(settings).every(isText)) throw new Error('Invalid settings');
-  if ('theme' in settings && !['light', 'dark'].includes(settings.theme)) throw new Error('Invalid theme');
-  if ('lang' in settings && !['zh', 'en'].includes(settings.lang)) throw new Error('Invalid language');
-  if ('siteData' in settings) {
-    const groups = JSON.parse(settings.siteData);
-    if (!Array.isArray(groups) || !groups.every(group => isObject(group) && isText(group.title)
-      && /^#[0-9a-f]{6}$/i.test(group.color) && Array.isArray(group.links)
-      && group.links.every(link => isObject(link) && isText(link.name) && isText(link.url)
-        && (!link.url || normalizeLinkUrl(link.url))))) throw new Error('Invalid groups');
-  }
-  if ('enginesData' in settings) {
-    const engines = JSON.parse(settings.enginesData);
-    if (!Array.isArray(engines) || !engines.length || !engines.every(engine => isObject(engine)
-      && isText(engine.id) && engine.id && isText(engine.name) && engine.name
-      && isText(engine.url) && engine.url.includes('{query}') && /^https?:\/\//i.test(engine.url)
-      && normalizeLinkUrl(engine.url.replace('{query}', 'test')))
-      || new Set(engines.map(engine => engine.id)).size !== engines.length) throw new Error('Invalid engines');
-  }
-  if ('weatherLocationData' in settings) {
-    const location = JSON.parse(settings.weatherLocationData);
-    if (location !== null && (!isObject(location) || !['id', 'name', 'location'].some(key => isText(location[key]) && location[key]))) throw new Error('Invalid location');
-  }
-  return settings;
-}
+function validateImportedSettings(data) { return StartPageData.importSettings(data); }
 async function importConfig(file) {
   try {
+    if (file.size > StartPageData.limits.fileBytes) throw Error('size');
     const settings = validateImportedSettings(JSON.parse(await file.text()));
     if (!await customConfirm(t('importConfirm'))) return;
+    if (!groupStore.flush() || !engineStore.flush()) return;
     for (const [key, value] of Object.entries(settings)) appStorage.setItem(key, value);
-    clearWeatherCache(); location.reload();
-  } catch (error) { customNotice(t('importFailed')); }
+    clearWeatherCache();
+    loadSiteData(); loadEnginesData();
+    currentLang = appStorage.getItem('lang') || 'zh';
+    initTheme(); updateAllTexts(); renderMainPageGroups(); renderEngineDropdown();
+    setSearchEngine(appStorage.getItem('searchEngine')); initWeather();
+    await renderSettingsGroups();
+    customNotice(t('importSuccess'));
+  } catch { customNotice(t('importFailed')); }
 }
+
 exportConfigBtn.onclick = () => {
   includeApiKey.checked = false;
   openModal(exportConfigModal, includeApiKey);
 };
-confirmExportBtn.onclick = () => { exportConfig(includeApiKey.checked); closeModal(exportConfigModal); };
+confirmExportBtn.onclick = () => { if (exportConfig(includeApiKey.checked)) closeModal(exportConfigModal); };
 cancelExportBtn.onclick = () => closeModal(exportConfigModal);
 closeOnBackdropClick(exportConfigModal, () => cancelExportBtn.click());
 importConfigBtn.onclick = () => importConfigInput.click();
 importConfigInput.onchange = () => { const file = importConfigInput.files[0]; if (file) importConfig(file); importConfigInput.value = ''; };
 
-function delay(ms) { return new Promise(resolve => setTimeout(resolve, ms)); }
-let welcomeFinishing = false;
-async function finishWelcome(name, skipGreeting = false) {
-  if (welcomeFinishing) return;
-  welcomeFinishing = true;
-  appStorage.setItem('userName', name);
-  appStorage.setItem('hasVisited', 'true');
-  updateGreeting(); renderUsernameSection();
-  const overlay = document.getElementById('welcome-overlay');
-  const inputContainer = document.getElementById('welcome-input-container');
-  const greetingContainer = document.getElementById('welcome-greeting-container');
-  const reduced = reducedMotionQuery.matches;
-  inputContainer.style.opacity = '0';
-  inputContainer.style.transform = 'translateY(-30px)';
-  await delay(reduced ? 0 : 500);
-  inputContainer.style.display = 'none';
-  if (!skipGreeting) {
-    document.getElementById('welcome-greeting-text').textContent = greeting.textContent;
-    greetingContainer.style.opacity = '1';
-    greetingContainer.style.transform = 'translateY(0)';
-    await delay(1500);
-    greetingContainer.style.opacity = '0';
-    greetingContainer.style.transform = 'translateY(-30px)';
-    await delay(reduced ? 0 : 400);
-  }
-  overlay.style.opacity = '0';
-  document.documentElement.classList.add('do-reveal');
-  document.documentElement.classList.remove('is-first-visit');
-  await delay(reduced ? 0 : 800);
-  overlay.style.display = 'none';
-  searchInput.focus();
-  await delay(reduced ? 0 : 500);
-  document.documentElement.classList.remove('do-reveal');
+let lastRefresh = Date.now();
+const getGreetingPeriod = () => [5, 9, 12, 18, 22, 24].findIndex(end => new Date().getHours() < end);
+let greetingPeriod = getGreetingPeriod();
+function refreshWhenVisible() {
+  if (document.visibilityState !== 'visible') return;
+  const period = getGreetingPeriod();
+  if (period !== greetingPeriod) { greetingPeriod = period; updateGreeting(); }
+  if (Date.now() - lastRefresh > 60000) { lastRefresh = Date.now(); initWeather(); }
 }
-function handleFirstVisit() {
-  if (appStorage.getItem('hasVisited')) return;
-  const overlay = document.getElementById('welcome-overlay');
-  const input = document.getElementById('welcome-name-input');
-  const skip = document.getElementById('welcome-skip');
-  overlay.style.display = 'flex';
-  setTimeout(() => input.focus(), 0);
-  skip.textContent = t('welcomeSkip');
-  input.onkeydown = e => {
-    if (e.isComposing) return;
-    if (e.key === 'Enter') finishWelcome(input.value.trim());
-    if (e.key === 'Escape') finishWelcome('', true);
-  };
-  skip.onclick = () => finishWelcome('', true);
-}
+document.addEventListener('visibilitychange', refreshWhenVisible);
+window.addEventListener('focus', refreshWhenVisible);
+document.getElementById('usernameInput').maxLength = StartPageData.limits.text;
+document.getElementById('welcome-name-input').maxLength = StartPageData.limits.text;
+apiKeyInput.maxLength = 4096;
 init();

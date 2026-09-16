@@ -1,3 +1,8 @@
+node_modules/
+dist/
+test-results/
+playwright-report/
+StartPage.html.tmp
 StartPage.html
 startpage.html
 *.zip
