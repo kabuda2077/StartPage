@@ -69,7 +69,7 @@
 
 #### 单文件版
 
-Release 同时提供 `startpage.html`。它由 `index.html`、`style.css` 和 `script.js` 自动构建，字体及 Sortable 通过 CDN 加载，因此需要网络连接。开发时可运行：
+Release 同时提供 `StartPage.html`（注意文件名大小写）。它由 `index.html`、`style.css` 和 `script.js` 自动构建，预设搜索引擎图标直接嵌入文件；字体及 Sortable 仍通过 CDN 加载，因此需要网络连接。开发时可运行：
 
 ```bash
 bash build.sh

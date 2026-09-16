@@ -1,12 +1,12 @@
 #!/bin/bash
-# Build single-file startpage.html from index.html + style.css + script.js
+# Build single-file StartPage.html from index.html + style.css + script.js
 
 set -e
 
 SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
 cd "$SCRIPT_DIR"
 
-OUTPUT="startpage.html"
+OUTPUT="StartPage.html"
 SORTABLE_SRC="https://cdn.jsdelivr.net/npm/sortablejs@1.15.0/Sortable.min.js"
 
 CSS=$(<style.css)
@@ -17,6 +17,17 @@ STARTPAGE_CSS=${STARTPAGE_CSS//"assets/fonts/JetBrainsMono-700.woff2"/"https://c
 JS=$(<script.js)
 STARTPAGE_JS=${JS//"script.src = 'Sortable.min.js';"/"script.src = '$SORTABLE_SRC';"}
 STARTPAGE_JS=${STARTPAGE_JS//"Failed to load Sortable.min.js"/"Failed to load Sortable from CDN"}
+
+# Keep preset icons self-contained, including when opened outside the project folder.
+for ICON_FILE in assets/engine-icons/*.ico assets/engine-icons/*.svg; do
+  [ -f "$ICON_FILE" ] || continue
+  case "$ICON_FILE" in
+    *.svg) ICON_TYPE="image/svg+xml" ;;
+    *.ico) ICON_TYPE="image/x-icon" ;;
+  esac
+  ICON_DATA=$(base64 < "$ICON_FILE" | tr -d '\r\n')
+  STARTPAGE_JS=${STARTPAGE_JS//"$ICON_FILE"/"data:$ICON_TYPE;base64,$ICON_DATA"}
+done
 
 {
   cat <<'EOF'

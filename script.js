@@ -15,7 +15,7 @@ const i18n = {
     weatherLocationMissing: "未找到该城市", weatherApiFailed: "天气服务返回异常", locationSearchFailed: "位置搜索失败，请稍后重试", locationSelected: "已选择：{location}",
     locationDetected: "识别到：{location}", confirmLocation: "确认位置", selectLocationFirst: "请先从下拉列表选择一个位置",
     feelsLike: "体感", groupNamePlaceholder: "分组名称", dragSortTitle: "拖动排序", delLinkTitle: "删除链接",
-    editBtnTitle: "编辑", delGroupTitle: "删除分组", usernamePlaceholder: "输入您的名字", welcomeSkip: "跳过"
+    editBtnTitle: "编辑", delGroupTitle: "删除分组", usernamePlaceholder: "输入您的名字", welcomeSkip: "Skip"
   },
   en: {
     backup: "Configuration backup", includeApiKey: "Include weather API Key", exportKeyHint: "When selected, the exported file will contain the Key in plain text.", showApiKey: "Show API Key", hideApiKey: "Hide API Key",
@@ -74,15 +74,15 @@ const ICONS = {
   user: '<svg viewBox="0 0 24 24"><path d="M20 21a8 8 0 1 0-16 0"/><circle cx="12" cy="7" r="4"/></svg>'
 };
 const ENGINE_ICON_URLS = {
-  google: 'https://www.google.com/favicon.ico',
-  duckduckgo: 'https://duckduckgo.com/favicon.ico',
-  baidu: 'https://www.baidu.com/favicon.ico',
-  bing: 'https://www.microsoft.com/favicon.ico',
-  yahoo: 'https://s.yimg.com/rz/l/favicon.ico',
-  yandex: 'https://yandex.com/favicon.ico',
-  bilibili: 'https://www.bilibili.com/favicon.ico',
-  github: 'https://github.githubassets.com/favicons/favicon.svg',
-  zhihu: 'https://static.zhihu.com/heifetz/favicon.ico'
+  google: 'assets/engine-icons/google.ico',
+  duckduckgo: 'assets/engine-icons/duckduckgo.ico',
+  baidu: 'assets/engine-icons/baidu.ico',
+  bing: 'assets/engine-icons/bing.ico',
+  yahoo: 'assets/engine-icons/yahoo.ico',
+  yandex: 'assets/engine-icons/yandex.ico',
+  bilibili: 'assets/engine-icons/bilibili.ico',
+  github: 'assets/engine-icons/github.svg',
+  zhihu: 'assets/engine-icons/zhihu.ico'
 };
 const ENGINE_ICON_CLASS_MAP = {
   'brand:google': 'google',
@@ -164,6 +164,7 @@ function setIcon(el, name) {
 }
 function setEngineIcon(el, iconClassName) {
   const name = engineIconNameFromValue(iconClassName);
+  if (el.dataset.engineIcon === name && el.firstElementChild) return;
   el.classList.add('ui-icon');
   el.classList.remove('engine-brand-icon');
   el.removeAttribute('data-icon');
@@ -180,7 +181,7 @@ function setEngineIcon(el, iconClassName) {
   img.src = ENGINE_ICON_URLS[name];
   img.alt = '';
   img.decoding = 'async';
-  img.loading = 'lazy';
+  img.loading = 'eager';
   img.referrerPolicy = 'no-referrer';
   img.onerror = () => {
     el.classList.remove('engine-brand-icon');
@@ -795,6 +796,7 @@ addNewGroupBtn.addEventListener('click', async () => {
 document.getElementById('editEnginesBtn').addEventListener('click', editEngines);
 
 async function editEngines() {
+  document.querySelector('.group-color-field')?.remove();
   await ensureSortable();
   settingsTitle.textContent = t('customEngine'); settingsActions.style.display = 'none'; globalSettingsSection.style.display = 'none'; document.getElementById('langToggleBtnSettings').style.display = 'none';
   const renderEngineList = () => {
@@ -938,6 +940,7 @@ function ensureSortable() {
   return sortableLoadPromise;
 }
 async function renderSettingsGroups() {
+  document.querySelector('.group-color-field')?.remove();
   settingsTitle.textContent = t('settings'); globalSettingsSection.style.display = "flex"; settingsActions.style.display = "flex"; document.getElementById('langToggleBtnSettings').style.display = 'flex';
   settingsGroupsContainer.innerHTML = '';
   siteData.forEach((g) => {
@@ -981,6 +984,7 @@ async function editGroup(group) {
   const g = group;
   settingsTitle.textContent = ''; globalSettingsSection.style.display = "none"; settingsActions.style.display = "none"; document.getElementById('langToggleBtnSettings').style.display = 'none';
   settingsGroupsContainer.innerHTML = '';
+  document.querySelector('.group-color-field')?.remove();
   const colorField = document.createElement('label'); colorField.className = 'group-color-field';
   const colorLabel = currentLang === 'zh' ? '分组颜色' : 'Group Color';
   colorField.title = colorLabel;
@@ -989,9 +993,10 @@ async function editGroup(group) {
   colorInput.oninput = e => { g.color = e.target.value; settingsTitle.querySelector('.ui-icon').style.color = g.color; saveSiteData(); renderMainPageGroups(); };
   const folderIcon = createIcon('folder'); folderIcon.style.color = g.color;
   folderIcon.setAttribute('aria-hidden', 'true');
-  colorField.append(folderIcon, colorInput);
+  colorField.appendChild(colorInput);
+  settingsCloseButton.before(colorField);
   const titleText = document.createElement('span'); titleText.className = 'group-title-text'; titleText.textContent = g.title;
-  settingsTitle.append(colorField, titleText);
+  settingsTitle.append(folderIcon, titleText);
   const list = document.createElement('div'); list.id = 'l-list'; list.className = 'link-list';
   const actions = document.createElement('div'); actions.className = 'settings-inline-actions';
   const addBtn = document.createElement('button'); addBtn.id = 'addL'; addBtn.className = 'btn btn-primary'; addBtn.append(createIcon('plus'), document.createTextNode(` ${t('addNewLink')}`));
