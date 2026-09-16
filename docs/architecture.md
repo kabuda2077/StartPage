@@ -26,7 +26,7 @@ Local-storage failures switch to session memory. The settings page exposes this 
 
 ## Input and backups
 
-New backups use schema version 2 with nested arrays and objects. Version 1 JSON-string fields remain importable. Only allowlisted settings are accepted. Maximum file size is 2MB, with at most 100 groups, 2,000 links and 100 search engines. Text fields have length limits; search templates require `{query}` and HTTP(S), and links reject active protocols and credentials in URLs.
+New backups use schema version 2 with nested arrays and objects. Version 1 JSON-string fields remain importable. Only allowlisted settings are accepted. Maximum file size is 64 MiB, with at most 100 groups, 2,000 links and 100 search engines. The byte cap allows a complete configuration at the field/count limits, including JSON escaping; export serializes only validated, allowlisted data and checks the same UTF-8 cap as import. File size is checked before reading and encoded size is checked again when parsing. Normalized URLs must also remain within the URL length limit. Text fields have length limits; search templates require `{query}` and HTTP(S), and links reject active protocols and credentials in URLs.
 
 API Key export is opt-in. API Host is an ordinary backed-up setting. Missing keys in a backup preserve existing settings; explicitly included keys replace them. A missing/invalid selected engine falls back to the first engine.
 
@@ -42,7 +42,7 @@ Official documentation checked during this change:
 - https://dev.qweather.com/en/docs/configuration/authentication/
 - https://dev.qweather.com/en/docs/api/weather/weather-now-webapi-v7/
 
-The provider now recommends dedicated hosts and announces future v7 deprecation. The existing city lookup / v7 adapter remains for compatibility; migrating to coordinate-based v1 responses requires a separately verified provider adapter. No real account, API Key, billing entitlement or location permission was used in automated tests. Tests validate mocked payloads and request structure, not service availability or account authorization.
+The provider recommends dedicated hosts and states that legacy shared domains will be gradually discontinued starting in 2026. The v7 Weather Now page announces deprecation in favor of Current Weather v1 without a common shutdown date on that page. Changing API Host is a domain/authentication configuration change, not an API-version migration. The existing city lookup / v7 adapter remains for compatibility; migrating to coordinate-based v1 responses requires a separately verified provider adapter. No real account, API Key, billing entitlement or location permission was used in automated tests. Tests validate mocked payloads and request structure, not service availability or account authorization.
 
 ## UI and accessibility
 

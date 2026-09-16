@@ -28,8 +28,16 @@
       const host = getHost();
       const query = new URLSearchParams({ location: value, number: String(number), lang: getLang() });
       if (!host) query.set('key', key);
-      const result = await json(`https://${host || 'geoapi.qweather.com'}/v2/city/lookup?${query}`, { signal, headers: host ? { 'X-QW-Api-Key': key } : undefined });
-      if (result.code !== '200' || !Array.isArray(result.location)) throw Error('weatherApiFailed');
+      let result;
+      try {
+        result = await json(`https://${host || 'geoapi.qweather.com'}/v2/city/lookup?${query}`, { signal, headers: host ? { 'X-QW-Api-Key': key } : undefined });
+      } catch (error) {
+        if (error.name === 'AbortError') throw error;
+        const codes = { requestTimeout: 'locationTimeout', weatherApiFailed: 'locationApiFailed' };
+        throw Error(codes[error.message] || 'locationSearchFailed');
+      }
+      if (result.code === '404') return [];
+      if (result.code !== '200' || !Array.isArray(result.location)) throw Error('locationApiFailed');
       return result.location;
     }
     function cancel() { generation++; active?.abort(); }

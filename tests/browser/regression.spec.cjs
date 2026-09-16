@@ -148,9 +148,48 @@ test('API Host validation, mobile dark layout and modal focus isolation',async({
 test('oversized imports are rejected before reading; malformed saved data is recoverable',async({page})=>{
   await home(page);await settings(page);
   const read=await page.evaluate(async()=>{let read=false;await importConfig({size:StartPageData.limits.fileBytes+1,text:async()=>{read=true;return '{}';}});return read;});
-  expect(read).toBe(false);await expect(page.locator('#customNoticeMessage')).toHaveText('配置文件无效');
+  expect(read).toBe(false);await expect(page.locator('#customNoticeMessage')).toHaveText('配置文件超过 64 MiB 上限。');
   await page.evaluate(()=>appStorage.setItem('siteData','{broken'));await page.reload();await settings(page);
   expect(await page.evaluate(()=>appStorage.getItem('siteData.recovery'))).toBe('{broken');await expect(page.locator('#settings-status')).toContainText('恢复副本');
+});
+test('large exported backups can be imported again',async({page})=>{
+  await home(page);await settings(page);
+  await page.evaluate(()=>{
+    siteData = StartPageData.groups([{id:'large',title:'Large backup',color:'#123456',links:Array.from({length:600},(_,i)=>({id:`link-${i}`,name:'Link',url:'https://example.com/'+ 'a'.repeat(3980)}))}]);
+    saveSiteData();
+  });
+  await page.locator('#exportConfigBtn').click();
+  const event=page.waitForEvent('download');await page.locator('#confirmExportBtn').click();
+  const downloaded=fs.readFileSync(await (await event).path());expect(downloaded.byteLength).toBeGreaterThan(2*1024*1024);
+  await page.locator('#importConfigInput').setInputFiles({name:'large.json',mimeType:'application/json',buffer:downloaded});
+  await page.locator('#confirm-yes').click();await expect(page.locator('#customNoticeMessage')).toHaveText('配置导入成功');
+  expect(await page.evaluate(()=>siteData[0].links.length)).toBe(600);
+});
+test('language switching updates existing auxiliary labels and capacity notices',async({page})=>{
+  await home(page);await settings(page);await page.locator('#langToggleBtnSettings').click();
+  await expect(page.locator('#editUsernameBtn')).toHaveAttribute('title','Edit username');
+  await expect(page.locator('#editApiKeyBtn')).toHaveAttribute('title','Edit API Key');
+  await expect(page.locator('#apiKeyInput')).toHaveAttribute('aria-label','Weather API Key');
+  await expect(page.locator('.edit-btn').first()).toHaveAttribute('title','Edit');
+  await expect(page.locator('.handle').first()).toHaveAttribute('aria-label','Reorder: Alt + Up / Down');
+  await page.evaluate(()=>{StartPageData.limits.groups=siteData.length;});
+  await page.locator('#addNewGroupBtn').click();await page.locator('#customInputValue').fill('Limit');await page.locator('#customInputYes').click();
+  await expect(page.locator('#customNoticeMessage')).toHaveText('You can add up to 4 groups.');await page.locator('#customNoticeClose').click();
+  await page.locator('#langToggleBtnSettings').click();await expect(page.locator('#editUsernameBtn')).toHaveAttribute('title','编辑用户名');
+  await expect(page.locator('#apiKeyInput')).toHaveAttribute('aria-label','天气 API Key');
+  await page.locator('#editEnginesBtn').click();await page.locator('#addEngBtn').click();
+  await page.locator('#engEditName').fill('Test engine');await page.locator('#engEditUrl').fill('https://example.com?q={query}');
+  await page.evaluate(()=>{StartPageData.limits.engines=enginesData.length;});await page.locator('#saveEngBtn').click();
+  await expect(page.locator('#customNoticeMessage')).toHaveText('最多可添加 3 个搜索引擎。');await page.locator('#customNoticeClose').click();
+  await page.locator('#backFromSingleEng').click();await page.locator('#backFromEng').click();await page.locator('.edit-btn').first().click();
+  await page.evaluate(()=>{StartPageData.limits.links=siteData.reduce((total,g)=>total+g.links.length,0);});await page.locator('#addL').click();
+  await expect(page.locator('#customNoticeMessage')).toHaveText(/最多可添加 \d+ 个链接。/);
+});
+test('city lookup failure is not described as a weather failure',async({page})=>{
+  await home(page);await page.evaluate(()=>appStorage.setItem('qweatherApiKey','test-key'));
+  await page.route('https://geoapi.qweather.com/**',route=>route.abort());
+  await page.locator('#weather').click();await page.locator('#locationInput').fill('London');
+  await expect(page.locator('#locationError')).toHaveText('位置搜索失败，请稍后重试');
 });
 test('standalone file boots offline with denied storage, fonts and sorting embedded',async({browser})=>{
   const folder=fs.mkdtempSync(path.join(os.tmpdir(),'startpage-regression-'));const file=path.join(folder,'StartPage.html');fs.copyFileSync('StartPage.html',file);

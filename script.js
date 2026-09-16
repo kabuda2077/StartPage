@@ -41,8 +41,18 @@ function updateAllTexts() {
   document.querySelectorAll('.close-btn').forEach(button => button.setAttribute('aria-label', t('close')));
   document.getElementById('saveUsernameBtn').setAttribute('aria-label', t('save'));
   document.getElementById('saveApiKeyBtn').setAttribute('aria-label', t('save'));
-  document.getElementById('editUsernameBtn').setAttribute('aria-label', t('editBtnTitle'));
-  document.getElementById('editApiKeyBtn').setAttribute('aria-label', t('editBtnTitle'));
+  document.getElementById('editUsernameBtn').setAttribute('aria-label', t('editUsername'));
+  document.getElementById('editApiKeyBtn').setAttribute('aria-label', t('editApiKey'));
+  const buttonTexts = {
+    'settings-icon': 'settings', 'theme-toggle-icon': 'toggleTheme',
+    editUsernameBtn: 'editUsername', editApiKeyBtn: 'editApiKey',
+    saveUsernameBtn: 'save', saveApiKeyBtn: 'save', saveWeatherHostBtn: 'save'
+  };
+  for (const [id, key] of Object.entries(buttonTexts)) document.getElementById(id).title = t(key);
+  apiKeyInput.setAttribute('aria-label', t('apiKeyLabel'));
+  document.querySelectorAll('.close-btn').forEach(button => { button.title = t('close'); });
+  document.querySelectorAll('[data-i18n-aria]').forEach(element => element.setAttribute('aria-label', t(element.dataset.i18nAria)));
+  document.querySelectorAll('[data-i18n-title]').forEach(element => { element.title = t(element.dataset.i18nTitle); });
   if (enginesData.length) setSearchEngine(appStorage.getItem('searchEngine'));
 }
 
@@ -600,7 +610,7 @@ searchForm.onsubmit = e => {
 addNewGroupBtn.addEventListener('click', async () => {
   const name = await customInput(t('newGroupNamePrompt'));
   if (!name) return;
-  if (siteData.length >= StartPageData.limits.groups) { customNotice(t('importFailed')); return; }
+  if (siteData.length >= StartPageData.limits.groups) { customNotice(t('groupLimit', { limit: StartPageData.limits.groups })); return; }
   siteData.push({ id: StartPageData.id(), title: name.slice(0, StartPageData.limits.text), color: '#ffa726', links: [] });
   saveSiteData(); renderSettingsGroups(); renderMainPageGroups();
   setTimeout(() => settingsGroupsContainer.scrollTop = settingsGroupsContainer.scrollHeight, 100);
@@ -740,7 +750,7 @@ function editSingleEngine(engineId, onBack) {
     if (engineId && JSON.stringify(enginesData[idx]) !== originalEngine && !await customConfirm(t('storageConflict'))) { settingsView = { kind: 'engines' }; onBack(); return; }
     const updated = { ...eng, name, url, icon: i };
     if (idx < 0) {
-      if (enginesData.length >= StartPageData.limits.engines) { customNotice(t('importFailed')); return; }
+      if (enginesData.length >= StartPageData.limits.engines) { customNotice(t('engineLimit', { limit: StartPageData.limits.engines })); return; }
       enginesData.push(updated);
     } else enginesData[idx] = updated;
     saveEnginesData(); renderEngineDropdown(); if (appStorage.getItem('searchEngine') === eng.id) setSearchEngine(eng.id);
@@ -778,6 +788,7 @@ function makeSortable(container, options) {
 function enableKeyboardSorting(container, items, onChange) {
   container.querySelectorAll('.handle').forEach((handle, index) => {
     handle.tabIndex = 0; handle.removeAttribute('aria-hidden');
+    handle.dataset.i18nAria = 'sortKeyboard'; handle.dataset.i18nTitle = 'sortKeyboard';
     handle.setAttribute('role', 'button'); handle.setAttribute('aria-label', t('sortKeyboard')); handle.title = t('sortKeyboard');
     handle.onkeydown = event => {
       if (!event.altKey || !['ArrowUp', 'ArrowDown'].includes(event.key)) return;
@@ -799,10 +810,13 @@ async function renderSettingsGroups() {
   siteData.forEach((g) => {
     const div = document.createElement('div'); div.className = 'setting-item group-item';
     const input = document.createElement('input'); input.type = 'text'; input.className = 'setting-input setting-input-flush'; input.value = g.title;
+    input.dataset.i18nAria = 'groupNamePlaceholder';
     input.setAttribute('aria-label', t('groupNamePlaceholder'));
     const editBtn = document.createElement('button'); editBtn.className = 'btn btn-icon edit-btn'; editBtn.title = editBtn.setAttribute('aria-label', t('editBtnTitle')) || t('editBtnTitle'); editBtn.appendChild(createIcon('edit'));
     const delBtn = document.createElement('button'); delBtn.className = 'btn btn-icon btn-danger del-btn'; delBtn.title = delBtn.setAttribute('aria-label', t('delGroupTitle')) || t('delGroupTitle'); delBtn.appendChild(createIcon('trash'));
     const handle = createIcon('bars', 'handle'); handle.title = t('dragSortTitle'); handle.setAttribute('aria-hidden', 'true');
+    editBtn.dataset.i18nAria = editBtn.dataset.i18nTitle = 'editBtnTitle';
+    delBtn.dataset.i18nAria = delBtn.dataset.i18nTitle = 'delGroupTitle';
     div.append(handle, input, editBtn, delBtn);
     input.maxLength = StartPageData.limits.text;
     input.oninput = e => { g.title = e.target.value; saveSiteData(false); };
@@ -845,7 +859,7 @@ async function editGroup(group) {
   settingsGroupsContainer.innerHTML = '';
   document.querySelector('.group-color-field')?.remove();
   const colorField = document.createElement('label'); colorField.className = 'group-color-field';
-  const colorLabel = currentLang === 'zh' ? '分组颜色' : 'Group Color';
+  const colorLabel = t('groupColor');
   colorField.title = colorLabel;
   const colorInput = document.createElement('input'); colorInput.type = 'color'; colorInput.value = g.color;
   colorInput.setAttribute('aria-label', colorLabel);
@@ -872,7 +886,7 @@ async function editGroup(group) {
       const delBtn = document.createElement('button'); delBtn.className = 'btn btn-icon btn-danger'; delBtn.title = t('delLinkTitle'); delBtn.setAttribute('aria-label', t('delLinkTitle')); delBtn.appendChild(createIcon('trash'));
       d.append(createIcon('bars', 'handle'), nameInput, divider, urlInput, delBtn);
       nameInput.maxLength = StartPageData.limits.text; urlInput.maxLength = StartPageData.limits.url;
-      nameInput.setAttribute('aria-label', t('linkNamePlaceholder')); urlInput.setAttribute('aria-label', 'URL');
+      nameInput.setAttribute('aria-label', t('linkNamePlaceholder')); urlInput.setAttribute('aria-label', t('urlLabel'));
       nameInput.oninput = e => { l.name = e.target.value; saveSiteData(false); };
       urlInput.oninput = () => { urlInput.setCustomValidity(''); urlInput.removeAttribute('aria-invalid'); };
       urlInput.onblur = () => {
@@ -908,7 +922,7 @@ async function editGroup(group) {
   };
   render();
   document.getElementById('addL').onclick = () => {
-    if (siteData.reduce((sum, item) => sum + item.links.length, 0) >= StartPageData.limits.links) { customNotice(t('importFailed')); return; }
+    if (siteData.reduce((sum, item) => sum + item.links.length, 0) >= StartPageData.limits.links) { customNotice(t('linkLimit', { limit: StartPageData.limits.links })); return; }
     g.links.push({id: StartPageData.id(), name:'', url:''}); saveSiteData(); render();
   };
   document.getElementById('backG').onclick = renderSettingsGroups;
@@ -933,7 +947,13 @@ function createConfigSnapshot(withApiKey = false) {
 }
 function exportConfig(withApiKey = false) {
   if (!groupStore.flush() || !engineStore.flush()) return false;
-  const blob = new Blob([JSON.stringify(createConfigSnapshot(withApiKey), null, 2)], { type: 'application/json' });
+  let source;
+  try { source = StartPageData.serializeBackup(createConfigSnapshot(withApiKey)); }
+  catch (error) {
+    customNotice(t(error.message === 'backupTooLarge' ? 'backupTooLarge' : 'exportFailed', { limit: StartPageData.limits.fileBytes / 1024 / 1024 }));
+    return false;
+  }
+  const blob = new Blob([source], { type: 'application/json' });
   const link = document.createElement('a');
   link.href = URL.createObjectURL(blob); link.download = 'startpage-config.json'; link.click();
   setTimeout(() => URL.revokeObjectURL(link.href), 1000);
@@ -942,8 +962,8 @@ function exportConfig(withApiKey = false) {
 function validateImportedSettings(data) { return StartPageData.importSettings(data); }
 async function importConfig(file) {
   try {
-    if (file.size > StartPageData.limits.fileBytes) throw Error('size');
-    const settings = validateImportedSettings(JSON.parse(await file.text()));
+    if (file.size > StartPageData.limits.fileBytes) throw Error('backupTooLarge');
+    const settings = StartPageData.parseBackup(await file.text());
     if (!await customConfirm(t('importConfirm'))) return;
     if (!groupStore.flush() || !engineStore.flush()) return;
     for (const [key, value] of Object.entries(settings)) appStorage.setItem(key, value);
@@ -954,7 +974,7 @@ async function importConfig(file) {
     setSearchEngine(appStorage.getItem('searchEngine')); initWeather();
     await renderSettingsGroups();
     customNotice(t('importSuccess'));
-  } catch { customNotice(t('importFailed')); }
+  } catch (error) { customNotice(t(error.message === 'backupTooLarge' ? 'backupTooLarge' : 'importFailed', { limit: StartPageData.limits.fileBytes / 1024 / 1024 })); }
 }
 
 exportConfigBtn.onclick = () => {

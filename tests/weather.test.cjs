@@ -27,6 +27,20 @@ test('timeouts are translated error codes and never include credentials',async()
   try{await assert.rejects(StartPageWeather.json('https://example.com?key=test-secret',{timeout:5}),error=>error.message==='requestTimeout');}
   finally{global.fetch=original;}
 });
+test('city lookup keeps empty results, transport failures and API errors distinct',async()=>{
+  const original=global.fetch;
+  try {
+    const {client}=setup();
+    global.fetch=async()=>({ok:true,json:async()=>({code:'404'})});
+    assert.deepEqual(await client.lookup('missing'),[]);
+    global.fetch=async()=>{throw Error('failed https://example.com?key=secret');};
+    await assert.rejects(client.lookup('city'),error=>error.message==='locationSearchFailed');
+    global.fetch=async()=>({ok:false});
+    await assert.rejects(client.lookup('city'),error=>error.message==='locationApiFailed');
+    global.fetch=async()=>({ok:true,json:async()=>({code:'401'})});
+    await assert.rejects(client.lookup('city'),error=>error.message==='locationApiFailed');
+  } finally { global.fetch=original; }
+});
 test('cancelling a weather request prevents late results from touching cache',async()=>{
   const original=global.fetch;let release,started;const gate=new Promise(resolve=>release=resolve),ready=new Promise(resolve=>started=resolve);
   global.fetch=async()=>{started();await gate;return response();};

@@ -1,6 +1,8 @@
 /* Shared validation for saved settings, editors and backup files. */
 (() => {
-  const limits = { fileBytes: 2 * 1024 * 1024, groups: 100, links: 2000, engines: 100, text: 200, url: 4096 };
+  // Covers every permitted group/link/engine field even with JSON escaping.
+  // Keep a byte cap for unrelated or excessively padded files as well.
+  const limits = { fileBytes: 64 * 1024 * 1024, groups: 100, links: 2000, engines: 100, text: 200, url: 4096 };
   const id = () => globalThis.crypto?.randomUUID?.() || `item-${Date.now()}-${Math.random().toString(36).slice(2)}`;
   const object = value => value !== null && typeof value === 'object' && !Array.isArray(value);
   const text = (value, max = limits.text) => typeof value === 'string' && value.length <= max;
@@ -10,7 +12,7 @@
     if (/^[a-z][a-z\d+.-]*:/i.test(raw) && !/^https?:\/\//i.test(raw) && !/^[^/:]+:\d+(?:[/?#]|$)/.test(raw)) return '';
     try {
       const parsed = new URL(/^https?:\/\//i.test(raw) ? raw : `https://${raw}`);
-      return /^https?:$/.test(parsed.protocol) && parsed.hostname && !parsed.username && !parsed.password ? parsed.href : '';
+      return /^https?:$/.test(parsed.protocol) && parsed.hostname && !parsed.username && !parsed.password && parsed.href.length <= limits.url ? parsed.href : '';
     } catch { return ''; }
   }
   function navigationUrl(value) {
@@ -101,6 +103,20 @@
     if (!Object.keys(result).length) throw Error('empty');
     return result;
   }
+  function serializeBackup(data) {
+    const checked = importSettings(data);
+    const settings = { ...checked };
+    for (const key of ['siteData', 'enginesData', 'weatherLocationData']) {
+      if (key in settings) settings[key] = JSON.parse(settings[key]);
+    }
+    const result = JSON.stringify({ schemaVersion: 2, exportedAt: data.exportedAt, settings }, null, 2);
+    if (new TextEncoder().encode(result).byteLength > limits.fileBytes) throw Error('backupTooLarge');
+    return result;
+  }
+  function parseBackup(source) {
+    if (typeof source !== 'string' || new TextEncoder().encode(source).byteLength > limits.fileBytes) throw Error('backupTooLarge');
+    return importSettings(JSON.parse(source));
+  }
   function merge(base, local, remote) {
     const same = (a, b) => JSON.stringify(a) === JSON.stringify(b);
     if (same(local, base)) return remote;
@@ -131,5 +147,5 @@
     }
     throw Error('conflict');
   }
-  globalThis.StartPageData = { limits, id, groups, engines, location, linkUrl, navigationUrl, importSettings, merge, weatherHost };
+  globalThis.StartPageData = { limits, id, groups, engines, location, linkUrl, navigationUrl, importSettings, serializeBackup, parseBackup, merge, weatherHost };
 })();
