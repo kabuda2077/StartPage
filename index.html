@@ -166,10 +166,12 @@
   </div>
 
   <div id="exportConfigModal" class="modal" role="dialog" aria-modal="true" aria-labelledby="export-config-title" tabindex="-1">
-    <div class="modal-content modal-content-confirm">
-      <h2 id="export-config-title" class="confirm-message">导出配置</h2>
-      <label class="export-key-option"><input type="checkbox" id="includeApiKey"><span id="include-api-key-label">包含天气 API Key</span></label>
+    <div class="modal-content modal-content-export">
+      <div class="modal-header"><h2 id="export-config-title">导出配置</h2></div>
+      <div class="export-options">
+      <label class="export-key-option"><input type="checkbox" id="includeApiKey" aria-describedby="export-key-hint"><span id="include-api-key-label">包含天气 API Key</span></label>
       <p id="export-key-hint" class="export-key-hint">勾选后，导出的文件将包含明文 Key。</p>
+      </div>
       <div class="confirm-actions">
         <button type="button" class="btn btn-primary" id="confirmExportBtn">导出配置</button>
         <button type="button" class="btn btn-secondary" id="cancelExportBtn">取消</button>
