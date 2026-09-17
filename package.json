@@ -1,7 +1,7 @@
 {
   "name": "startpage",
   "private": true,
-  "version": "1.7.1",
+  "version": "1.8.0",
   "scripts": {
     "build": "node tools/build.mjs",
     "test": "npm run build && node --test tests/*.test.cjs && playwright test"
