@@ -1,23 +1,100 @@
-name: Check
+name: CI
+
 on:
   push:
+    branches: [main]
   pull_request:
+  workflow_dispatch:
+    inputs:
+      release:
+        description: Publish the verified version (main only)
+        type: boolean
+        default: false
+      full_tests:
+        description: Include detailed UI and animation regression tests
+        type: boolean
+        default: false
+
 permissions:
   contents: read
+
+# Superseded PR checks can stop; main/release runs must finish independently.
+concurrency:
+  group: ci-${{ github.event_name == 'pull_request' && github.ref || github.run_id }}
+  cancel-in-progress: true
+
 jobs:
-  test:
+  verify:
     runs-on: ubuntu-latest
+    outputs:
+      version: ${{ steps.plan.outputs.version }}
+      publish: ${{ steps.plan.outputs.publish }}
+      artifact: ${{ steps.package.outputs.artifact }}
     steps:
       - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
       - uses: actions/setup-node@v4
         with:
           node-version: 22
           cache: npm
+      - name: Validate versions and decide whether to publish
+        id: plan
+        env:
+          RELEASE_REQUESTED: ${{ inputs.release || false }}
+        run: node tools/release.mjs plan
       - run: npm ci --include=dev
-      - run: npx playwright install --with-deps chromium
-      - run: npm test
+      - run: npx playwright install --with-deps --only-shell chromium
+      - name: Build and test once
+        env:
+          FULL_TESTS: ${{ inputs.full_tests || false }}
+        run: |
+          if [ "$FULL_TESTS" = "true" ]; then
+            npm run test:full
+          else
+            npm test
+          fi
+      - name: Package the tested output
+        id: package
+        run: |
+          npm run release:prepare
+          echo "artifact=verified-${GITHUB_SHA}-${GITHUB_RUN_ATTEMPT}" >> "$GITHUB_OUTPUT"
       - uses: actions/upload-artifact@v4
+        with:
+          name: ${{ steps.package.outputs.artifact }}
+          path: dist/release/
+          if-no-files-found: error
+          retention-days: 7
+      - name: Retain failure diagnostics
+        uses: actions/upload-artifact@v4
         if: failure()
         with:
-          name: test-results
+          name: test-results-${{ github.sha }}-${{ github.run_attempt }}
           path: test-results/
+          if-no-files-found: ignore
+          retention-days: 7
+
+  publish:
+    needs: verify
+    if: needs.verify.outputs.publish == 'true' && github.ref == 'refs/heads/main' && github.event_name != 'pull_request'
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    concurrency:
+      group: startpage-release
+      cancel-in-progress: false
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.sha }}
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - uses: actions/download-artifact@v4
+        with:
+          name: ${{ needs.verify.outputs.artifact }}
+          path: dist/release/
+      - name: Verify, upload and publish the same artifacts
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: node tools/release.mjs publish

@@ -144,7 +144,7 @@ for (const appearance of [{ width: 1280, theme: 'light' }, { width: 320, theme: 
   });
 }
 
-test('one settings editor at a time; other tabs sync without overwriting', async ({ context, page }) => {
+test('one settings editor at a time; other tabs sync without overwriting @smoke', async ({ context, page }) => {
   await home(page);
   const second = await context.newPage(); await second.goto('/');
   await settings(page); await settings(second);
@@ -243,7 +243,7 @@ test('shared settings and sorting keep keyboard editing usable without the vendo
   await expect(page.locator('#global-settings-section')).toBeVisible();
 });
 
-test('large backups round-trip with optional Key and legacy import support', async ({ page }) => {
+test('large backups round-trip with optional Key and legacy import support @smoke', async ({ page }) => {
   await home(page); await settings(page);
   await page.evaluate(() => {
     appStorage.setItem('qweatherApiKey', 'test-only');
@@ -333,7 +333,7 @@ test('late weather results cannot overwrite a newer city', async ({ page }) => {
   await expect(page.locator('#apiKeyInput')).toBeVisible();
 });
 
-test('unset location opens inline, requires a Key and collapses after saving', async ({ page }) => {
+test('unset location opens inline, requires a Key and collapses after saving @smoke', async ({ page }) => {
   await home(page); await settings(page); await page.locator('#weatherSettingsBtn').click();
   const toggle = page.locator('#weatherLocationBtn');
   await expect(toggle).toHaveAttribute('aria-expanded', 'true');
@@ -409,7 +409,7 @@ for (const viewport of [{ width: 1280, height: 900 }, { width: 320, height: 700 
   });
 }
 
-test('built standalone runs offline and imports with denied storage; package contains only runtime files', async ({ browser }) => {
+test('built standalone runs offline and imports with denied storage; package contains only runtime files @smoke', async ({ browser }) => {
   const folder = fs.mkdtempSync(path.join(os.tmpdir(), 'startpage-smoke-'));
   const file = path.join(folder, 'StartPage.html'); fs.copyFileSync('StartPage.html', file);
   const context = await browser.newContext({ offline: true, reducedMotion: 'reduce', viewport: { width: 1280, height: 650 } });

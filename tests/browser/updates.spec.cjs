@@ -103,7 +103,7 @@ test('the check label stays fixed, its icon is decorative, and only the newer re
   expect(requests).toBe(4);
 });
 
-test('checking text can recheck a known update without navigating, including failure retries and keyboard use', async ({ page }) => {
+test('checking text can recheck a known update without navigating, including failure retries and keyboard use @smoke', async ({ page }) => {
   const newest = `${major}.${minor + 1}.1`;
   let mode = 'newer', requests = 0, releaseRequest;
   const waiting = new Promise(resolve => { releaseRequest = resolve; });

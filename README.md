@@ -66,16 +66,19 @@
 
 ## 开发与验证
 
-普通使用无需开发工具。开发环境使用 Node.js 22+：
+普通使用无需开发工具。开发与 CI 统一使用 Node.js 22 和 Playwright 固定版本的 Chromium：
 
 ```bash
 npm ci --include=dev
-npx playwright install chromium
-npm test       # 构建并运行回归测试
-npm run build  # 生成 StartPage.html 和 dist/extension
+npx playwright install --only-shell chromium
+npm test           # 构建、单元测试和关键浏览器冒烟检查
+npm run test:full  # 按需运行完整界面和动画回归
+npm run build      # 生成 StartPage.html 和 dist/extension
 ```
 
-纯前端项目，测试工具不会包含在发布包中。
+CI 只构建和测试一次，发布复用该次验证的产物。主分支版本号提升时自动发布，也可在 Actions → CI 手动勾选 `release`；`full_tests` 用于额外的详细检查。上传失败可只重跑失败的发布作业，验证产物保留 7 天。
+
+纯前端项目，测试和发布工具不会包含在安装包中。
 
 ## 友情链接
 
