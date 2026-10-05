@@ -198,8 +198,13 @@ test('reordering edits the correct engine, cancelling drafts saves nothing, inva
 });
 
 test('shared settings and sorting keep keyboard editing usable without the vendor library', async ({ page }) => {
-  await page.route('**/assets/vendor/Sortable.min.js', route => route.abort());
+  await page.route('**/assets/vendor/Sortable.min.js', async route => {
+    // Exercise a delayed load failure, not just an immediate local abort.
+    await new Promise(resolve => setTimeout(resolve, 100));
+    await route.abort();
+  });
   await home(page); await settings(page);
+  await expect(page.locator('#settingsModal')).toBeVisible();
   expect(await page.evaluate(() => typeof Sortable)).toBe('undefined');
   const groups = await page.evaluate(() => siteData.map(group => group.id));
   await page.locator('#settings-groups-container .handle').first().press('Alt+ArrowDown');
@@ -220,6 +225,8 @@ test('shared settings and sorting keep keyboard editing usable without the vendo
 
   await page.locator('#editEnginesBtn').click();
   const engines = await page.evaluate(() => enginesData.map(engine => engine.id));
+  await expect(page.locator('#settings-title')).toHaveText('自定义搜索引擎');
+  await expect(page.locator('.engine-name')).toHaveCount(engines.length);
   await page.locator('#settings-groups-container .handle').first().press('Alt+ArrowDown');
   expect(await page.evaluate(() => JSON.parse(appStorage.getItem('enginesData')).map(engine => engine.id)))
     .toEqual([engines[1], engines[0], ...engines.slice(2)]);
