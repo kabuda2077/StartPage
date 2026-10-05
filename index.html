@@ -9,7 +9,7 @@
 
   <script src="weather-client.js" defer></script>
   <script src="ui-core.js" defer></script>
-
+  <script src="ui-motion.js" defer></script>
   <script src="script.js" defer></script>
 </head>
 <body>
@@ -93,33 +93,35 @@
       <div id="settings-groups-container"></div>
 
       <div id="settings-actions" class="settings-actions-section">
-        <button id="addNewGroupBtn" class="btn btn-primary full-width">
+        <button id="addNewGroupBtn" class="btn btn-add-group full-width">
           <span class="ui-icon" data-icon="plus"></span> <span id="addNewGroupBtnText">添加新分组</span>
         </button>
       </div>
 
       <div id="global-settings-section" class="settings-section">
-        <button id="editEnginesBtn" class="setting-item settings-entry">
-          <span class="ui-icon" data-icon="search"></span> <span id="editEnginesBtnText">搜索引擎</span><span class="entry-chevron" aria-hidden="true">›</span>
-        </button>
+        <div class="settings-preferences">
+          <button type="button" id="editEnginesBtn" class="setting-item settings-entry">
+            <span class="ui-icon" data-icon="search"></span> <span id="editEnginesBtnText">搜索引擎</span><span class="entry-chevron" aria-hidden="true">›</span>
+          </button>
 
-        <button type="button" id="weatherSettingsBtn" class="setting-item settings-entry">
-          <span class="ui-icon" data-icon="cloud"></span><span id="weatherSettingsBtnText">天气设置</span>
-          <span id="weatherSettingsSummary" class="entry-summary"></span><span class="entry-chevron" aria-hidden="true">›</span>
-        </button>
+          <button type="button" id="weatherSettingsBtn" class="setting-item settings-entry">
+            <span class="ui-icon" data-icon="cloud"></span><span id="weatherSettingsBtnText">天气设置</span>
+            <span id="weatherSettingsSummary" class="entry-summary"></span><span class="entry-chevron" aria-hidden="true">›</span>
+          </button>
 
-        <div id="username-section">
-          <div class="setting-item setting-saved-row" id="username-saved-mode">
-            <div class="setting-label-row">
-              <span class="ui-icon setting-icon" data-icon="user"></span>
-              <span id="username-saved-text" class="setting-saved-text"></span>
+          <div id="username-section">
+            <div class="setting-item setting-saved-row" id="username-saved-mode">
+              <div class="setting-label-row">
+                <span class="ui-icon setting-icon" data-icon="user"></span>
+                <span id="username-saved-text" class="setting-saved-text"></span>
+              </div>
+              <button class="btn btn-icon" id="editUsernameBtn" title="编辑用户名" data-svg="edit"></button>
             </div>
-            <button class="btn btn-icon" id="editUsernameBtn" title="编辑用户名" data-svg="edit"></button>
-          </div>
-          <div class="setting-item edit-height" id="username-edit-mode">
-            <span class="ui-icon setting-icon" data-icon="user"></span>
-            <input type="text" class="setting-input" id="usernameInput" placeholder="输入您的名字" autocomplete="off">
-            <button class="btn btn-icon btn-success" id="saveUsernameBtn" data-svg="check"></button>
+            <div class="setting-item edit-height" id="username-edit-mode">
+              <span class="ui-icon setting-icon" data-icon="user"></span>
+              <input type="text" class="setting-input" id="usernameInput" placeholder="输入您的名字" autocomplete="off">
+              <button class="btn btn-icon btn-success" id="saveUsernameBtn" data-svg="check"></button>
+            </div>
           </div>
         </div>
 
@@ -134,9 +136,9 @@
       </div>
       <section id="weather-settings-page" hidden>
         <button type="button" id="weatherLocationBtn" class="setting-item settings-entry" aria-expanded="false" aria-controls="weather-location-editor">
-          <span id="weatherLocationLabel">位置</span><span id="weatherLocationSummary" class="entry-summary"></span><span class="entry-chevron" aria-hidden="true">›</span>
+          <span id="weatherLocationLabel">位置</span><span id="weatherLocationSummary" class="entry-summary"></span><svg class="entry-chevron disclosure-chevron" viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m9 6 6 6-6 6"/></svg>
         </button>
-        <div id="weather-location-editor" hidden></div>
+        <div id="weather-location-editor" hidden inert></div>
         <label class="weather-host-label" id="weather-key-label" for="apiKeyInput">API Key</label>
         <div id="api-key-section">
           <div class="setting-item setting-saved-row" id="api-key-saved-mode">
@@ -180,12 +182,12 @@
   </div>
 
   <div id="customInputModal" class="modal" role="dialog" aria-modal="true" aria-labelledby="customInputTitle" tabindex="-1">
-    <div class="modal-content modal-content-confirm">
-      <h2 id="customInputTitle" class="confirm-message"></h2>
-      <input id="customInputValue" class="standalone-input full-width" type="text" autocomplete="off">
+    <div class="modal-content modal-content-input">
+      <h2 id="customInputTitle" class="input-dialog-title"></h2>
+      <input id="customInputValue" class="standalone-input full-width" type="text" autocomplete="off" aria-labelledby="customInputTitle">
       <div class="confirm-actions">
-        <button class="btn btn-confirm-danger" id="customInputYes">确定</button>
-        <button class="btn btn-secondary" id="customInputNo">取消</button>
+        <button type="button" class="btn btn-primary" id="customInputYes">确定</button>
+        <button type="button" class="btn btn-secondary" id="customInputNo">取消</button>
       </div>
     </div>
   </div>

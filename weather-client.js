@@ -1,5 +1,7 @@
 /* Weather transport has no DOM dependencies; every load supersedes its predecessor. */
 (() => {
+  const CACHE_TTL = 60 * 60 * 1000;
+  const RETRY_DELAY = 5 * 60 * 1000;
   async function json(url, { signal, timeout = 8000, headers } = {}) {
     const controller = new AbortController();
     const abort = () => controller.abort();
@@ -40,8 +42,12 @@
       if (result.code !== '200' || !Array.isArray(result.location)) throw Error('locationApiFailed');
       return result.location;
     }
+    function readStored(name) {
+      try { return JSON.parse(storage.getItem(name) || 'null'); }
+      catch { return null; }
+    }
     function cancel() { generation++; active?.abort(); }
-    async function load(location) {
+    async function load(location, { onCache = () => {}, onLoading = () => {}, canRefresh = () => true, force = false } = {}) {
       cancel();
       const token = generation, key = getKey(), lang = getLang(), host = getHost();
       if (!key) return null;
@@ -51,11 +57,21 @@
       const keyId = [...new Uint8Array(await crypto.subtle.digest('SHA-256', new TextEncoder().encode(key)))].map(byte => byte.toString(16).padStart(2, '0')).join('');
       if (!current()) return null;
       const validData = data => data && ['temp', 'feelsLike', 'tempMax', 'tempMin'].every(field => Number.isFinite(Number(data[field])));
-      try {
-        const cache = JSON.parse(storage.getItem('weatherCache') || 'null');
-        const age = Date.now() - cache?.fetchedAt;
-        if (cache?.locationId === location?.id && cache.keyId === keyId && cache.host === host && cache.lang === lang && age >= 0 && age < 600000 && validData(cache.data)) return { data: cache.data, location };
-      } catch { /* Ignore obsolete or malformed caches. */ }
+      const identity = { locationId: location?.id || lookupValue(location), keyId, host, lang };
+      const matches = entry => entry && Object.entries(identity).every(([name, value]) => entry[name] === value);
+      const cache = readStored('weatherCache');
+      const cached = matches(cache) && Number.isFinite(cache.fetchedAt) && cache.fetchedAt <= Date.now() && validData(cache.data)
+        ? { data: cache.data, location, fetchedAt: cache.fetchedAt, refreshAt: cache.fetchedAt + CACHE_TTL } : null;
+      // Render even expired data before starting a request; cache reads never show a loading message.
+      if (cached) onCache(cached);
+      const retry = readStored('weatherRetry');
+      const hasRetry = matches(retry) && Number.isFinite(retry.failedAt) && retry.failedAt <= Date.now() && typeof retry.error === 'string';
+      if (!force && hasRetry && Date.now() < retry.failedAt + RETRY_DELAY) {
+        throw Object.assign(Error(retry.error), { retryAt: retry.failedAt + RETRY_DELAY });
+      }
+      if (!force && !hasRetry && cached && Date.now() < cached.refreshAt) return cached;
+      if (!canRefresh()) return cached;
+      if (!cached) onLoading();
       try {
         const selected = location?.id ? location : (await lookup(location, 1, signal))[0];
         if (!selected) throw Error('weatherLocationMissing');
@@ -72,15 +88,20 @@
         if (!validData(data)) throw Error('weatherApiFailed');
         storage.setItem('weatherLocationData', JSON.stringify(selected));
         storage.setItem('weatherLocation', selected.name || selected.id);
-        storage.setItem('weatherCache', JSON.stringify({ locationId: selected.id, keyId, host, lang, fetchedAt: Date.now(), data }));
-        return { data, location: selected };
+        const fetchedAt = Date.now();
+        storage.setItem('weatherCache', JSON.stringify({ locationId: selected.id, keyId, host, lang, fetchedAt, data }));
+        storage.removeItem('weatherRetry');
+        return { data, location: selected, fetchedAt, refreshAt: fetchedAt + CACHE_TTL };
       } catch (error) {
         if (!current() || error.name === 'AbortError') return null;
         active.abort();
+        const failedAt = Date.now();
+        storage.setItem('weatherRetry', JSON.stringify({ ...identity, failedAt, error: error.message }));
+        error.retryAt = failedAt + RETRY_DELAY;
         throw error;
       }
     }
     return { lookup, load, cancel };
   }
-  globalThis.StartPageWeather = { create, json };
+  globalThis.StartPageWeather = { create, json, CACHE_TTL, RETRY_DELAY };
 })();

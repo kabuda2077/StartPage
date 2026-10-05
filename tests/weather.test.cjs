@@ -3,7 +3,7 @@ const assert = require('node:assert/strict');
 require('../weather-client.js');
 function setup() {
   const memory = new Map();
-  const storage = {getItem:key=>memory.get(key)||null,setItem:(key,value)=>memory.set(key,value)};
+  const storage = {getItem:key=>memory.get(key)||null,setItem:(key,value)=>memory.set(key,value),removeItem:key=>memory.delete(key)};
   let key='test-key',lang='en',host='account.xy.qweatherapi.com';
   const client=StartPageWeather.create({storage,getKey:()=>key,getLang:()=>lang,getHost:()=>host});
   return {client,memory,setKey:value=>key=value,setLang:value=>lang=value,setHost:value=>host=value};

@@ -9,7 +9,7 @@ module.exports = defineConfig({
   use: {
     baseURL: 'http://127.0.0.1:4173',
     viewport: { width: 1280, height: 900 },
-    reducedMotion: 'reduce',
+    contextOptions: { reducedMotion: 'reduce' },
     launchOptions: fs.existsSync(localChrome) ? { executablePath: localChrome } : {},
     trace: 'retain-on-failure'
   },

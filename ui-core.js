@@ -10,7 +10,7 @@ const i18n = {
     weatherHostLabel: "API Host（控制台设置，可选）", weatherHostInvalid: "请输入控制台分配的 *.qweatherapi.com 域名",
     backup: "配置备份", includeApiKey: "包含天气 API Key", exportKeyHint: "勾选后，导出的文件将包含明文 Key。", showApiKey: "显示 API Key", hideApiKey: "隐藏 API Key",
     settings: "设置", inputLocation: "输入您的位置", locPlaceholder: "输入城市并选择匹配位置", saveLoc: "保存位置", useCurLoc: "使用当前位置",
-    addNewGroup: "添加新分组", customEngine: "自定义搜索引擎", apiKeySet: "API Key 已设置", inputApiKey: "输入和风天气 API Key",
+    addNewGroup: "添加新分组", customEngine: "自定义搜索引擎", inputApiKey: "输入和风天气 API Key",
     applyApiKey: '前往 <a href="https://dev.qweather.com" target="_blank" rel="noopener">dev.qweather.com</a> 免费申请 API Key',
     searchPlaceholder: "Search something...", searchWith: "Search with {name}", delGroupConfirm: "确认删除该分组及内部所有链接吗?",
     delLinkConfirm: "确认删除该链接吗?", delEngineConfirm: "确认删除\"{name}\"?", editEngine: "编辑：{name}", engineName: "名称",
@@ -34,7 +34,7 @@ const i18n = {
     weatherHostLabel: "API Host (Console settings, optional)", weatherHostInvalid: "Enter the *.qweatherapi.com hostname assigned in the Console",
     backup: "Configuration backup", includeApiKey: "Include weather API Key", exportKeyHint: "When selected, the exported file will contain the Key in plain text.", showApiKey: "Show API Key", hideApiKey: "Hide API Key",
     settings: "Settings", inputLocation: "Enter your location", locPlaceholder: "Type a city and choose a match", saveLoc: "Save Location", useCurLoc: "Use Current Location",
-    addNewGroup: "Add New Group", customEngine: "Search Engines", apiKeySet: "API Key is Set", inputApiKey: "Enter QWeather API Key",
+    addNewGroup: "Add New Group", customEngine: "Search Engines", inputApiKey: "Enter QWeather API Key",
     applyApiKey: 'Get a free API Key at <a href="https://dev.qweather.com" target="_blank" rel="noopener">dev.qweather.com</a>',
     searchPlaceholder: "Search something...", searchWith: "Search with {name}", delGroupConfirm: "Delete this group and all its links?",
     delLinkConfirm: "Delete this link?", delEngineConfirm: "Delete \"{name}\"?", editEngine: "Edit: {name}", engineName: "Name",
@@ -59,16 +59,20 @@ function t(key, params) {
   return text;
 }
 
-function getGreetingMsg() {
-  const hour = new Date().getHours();
-  let greetings;
-  if (hour < 5) greetings = ["up late, night owl?", "it's late, get some rest.", "still awake?"];
-  else if (hour < 9) greetings = ["early bird!", "good morning, early riser!", "ready for a new day?"];
-  else if (hour < 12) greetings = ["good morning!", "have a great morning!", "rise and shine!"];
-  else if (hour < 18) greetings = ["good afternoon!", "hope your day is going well!", "stay focused!"];
-  else if (hour < 22) greetings = ["good evening!", "time to wind down.", "hope you had a great day!"];
-  else greetings = ["good night!", "late night browsing?", "time to rest soon."];
-  return greetings[Math.floor(Math.random() * greetings.length)];
+const greetingPeriods = [
+  { end: 5, messages: ["up late, night owl?", "it's late, get some rest.", "still awake?"] },
+  { end: 9, messages: ["early bird!", "good morning, early riser!", "ready for a new day?"] },
+  { end: 12, messages: ["good morning!", "have a great morning!", "rise and shine!"] },
+  { end: 18, messages: ["good afternoon!", "hope your day is going well!", "stay focused!"] },
+  { end: 22, messages: ["good evening!", "time to wind down.", "hope you had a great day!"] },
+  { end: 24, messages: ["good night!", "late night browsing?", "time to rest soon."] }
+];
+function getGreetingPeriod(date = new Date()) { return greetingPeriods.findIndex(period => date.getHours() < period.end); }
+function getGreetingMsg(date = new Date()) {
+  const period = getGreetingPeriod(date), messages = greetingPeriods[period].messages;
+  // Local calendar date, not elapsed hours: stable across reloads/tabs and DST changes.
+  const day = Math.floor(Date.UTC(date.getFullYear(), date.getMonth(), date.getDate()) / 86400000);
+  return messages[((day + period) % messages.length + messages.length) % messages.length];
 }
 
 const ICONS = {
