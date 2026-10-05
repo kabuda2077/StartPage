@@ -70,6 +70,8 @@ test('the check label stays fixed, its icon is decorative, and only the newer re
   await expect(page.locator('#updateStatusLabel')).toHaveText('检查更新');
   await expect(page.locator('#updateResultLabel')).toHaveText('发现新版本');
   await expect(page.locator('#updateVersion')).toHaveText(`v${newer}`);
+  await expect(page.locator('#updateResult')).toHaveClass(/has-update/);
+  await expect(page.locator('#updateVersion')).not.toHaveCSS('color', initialStyle.versionColor);
   await expect(page.locator('#updateResult svg')).toHaveCount(0);
   await expect(page.locator('#updateResultLabel')).toHaveCSS('font-size', '12.8px');
   await expect(page.locator('#updateVersion')).toHaveCSS('font-size', '12.8px');
