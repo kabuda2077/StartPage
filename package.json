@@ -2,7 +2,7 @@
   "name": "startpage",
   "private": true,
   "version": "1.9.1",
-  "engines": { "node": "22.x" },
+  "engines": { "node": "24.x" },
   "scripts": {
     "build": "node tools/build.mjs",
     "test": "npm run build && npm run test:unit && playwright test --grep @smoke",

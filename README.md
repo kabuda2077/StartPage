@@ -66,7 +66,7 @@
 
 ## 开发与验证
 
-普通使用无需开发工具。开发与 CI 统一使用 Node.js 22 和 Playwright 固定版本的 Chromium：
+普通使用无需开发工具。开发与 CI 统一使用 Node.js 24 和 Playwright 固定版本的 Chromium：
 
 ```bash
 npm ci --include=dev
