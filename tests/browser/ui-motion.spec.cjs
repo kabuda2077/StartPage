@@ -9,6 +9,7 @@ async function home(page) {
 async function settings(page) {
   await home(page);
   await page.locator('#settings-icon').click();
+  await expect(page.locator('#settingsModal')).toBeVisible();
   await idle(page);
 }
 async function engines(page) {
