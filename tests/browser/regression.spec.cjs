@@ -4,6 +4,7 @@ const os = require('node:os');
 const path = require('node:path');
 const { pathToFileURL } = require('node:url');
 async function home(page) {
+  await page.context().route('https://api.github.com/repos/kabuda2077/StartPage/releases/latest', route => route.fulfill({ json: { tag_name: `v${require('../../manifest.json').version}`, draft: false, prerelease: false } }));
   await page.addInitScript(() => localStorage.setItem('hasVisited', 'true'));
   await page.goto('/');
   await expect(page.locator('.groups .group')).toHaveCount(4);
@@ -104,7 +105,8 @@ for (const appearance of [{ width: 1280, theme: 'light' }, { width: 320, theme: 
       return {
         lefts: [group.left, add.left, card.left, backup.left], rights: [group.right, add.right, card.right, backup.right],
         above: card.top - add.bottom, below: backup.top - card.bottom,
-        rows: [box('#editEnginesBtn').height, box('#weatherSettingsBtn').height, box('#username-section').height],
+        versionEdge: box('#updateVersion').right, iconEdge: box('#editUsernameBtn .ui-icon').right,
+        rows: [box('#editEnginesBtn').height, box('#weatherSettingsBtn').height, box('#username-section').height, box('#checkUpdateBtn').height],
         cardHeight: card.height,
         overflow: document.querySelector('.settings-preferences').scrollWidth - document.querySelector('.settings-preferences').clientWidth
       };
@@ -112,8 +114,9 @@ for (const appearance of [{ width: 1280, theme: 'light' }, { width: 320, theme: 
     const before = await layout();
     expect(Math.max(...before.lefts) - Math.min(...before.lefts)).toBeLessThan(1);
     expect(Math.max(...before.rights) - Math.min(...before.rights)).toBeLessThan(1);
-    expect(before.above).toBe(26); expect(before.below).toBe(26);
-    expect(before.rows).toEqual([50, 50, 50]);
+    expect(before.above).toBe(26); expect(before.below).toBe(14);
+    expect(before.versionEdge).toBeCloseTo(before.iconEdge, 1);
+    expect(before.rows).toEqual([50, 50, 50, 50]);
     expect(before.overflow).toBeLessThanOrEqual(1);
     await expect(page.locator('#addNewGroupBtn')).toHaveClass(/btn-add-group/);
     await expect(page.locator('#global-settings-section')).toHaveCSS('border-top-width', '0px');
@@ -132,12 +135,12 @@ for (const appearance of [{ width: 1280, theme: 'light' }, { width: 320, theme: 
     await page.locator('#editUsernameBtn').click();
     await page.locator('#usernameInput').fill(''); await page.locator('#saveUsernameBtn').click();
     await expect(page.locator('#username-edit-mode')).toBeVisible();
-    expect((await layout()).rows).toEqual([50, 50, 50]);
+    expect((await layout()).rows).toEqual([50, 50, 50, 50]);
     await page.locator('#editEnginesBtn').press('Enter');
     await expect(page.locator('#settings-title')).toHaveText('自定义搜索引擎');
     await page.locator('#settings-back-button').click();
     await expect(page.locator('.settings-preferences')).toBeVisible();
-    expect((await layout()).below).toBe(26);
+    expect((await layout()).below).toBe(14);
   });
 }
 
@@ -282,9 +285,10 @@ test('late weather results cannot overwrite a newer city', async ({ page }) => {
   await settings(page);
   await expect(page.locator('#apiKeyInput')).not.toBeVisible();
   await expect(page.locator('#weatherHostInput')).not.toBeVisible();
-  await expect(page.locator('#weatherSettingsSummary')).toHaveText('New');
+  await expect(page.locator('#weatherSettingsBtn')).toHaveText('天气设置 ›');
   await page.locator('#weatherSettingsBtn').click();
   await expect(page.locator('#settings-title')).toHaveText('天气设置');
+  await expect(page.locator('#weatherLocationSummary')).toHaveText('New');
   await expect(page.locator('#weatherHostInput')).toBeVisible();
   await expect(page.locator('#weatherLocationBtn')).toHaveAttribute('aria-expanded', 'false');
   await expect(page.locator('#weatherLocationBtn .disclosure-chevron')).toHaveCSS('transform', 'none');
@@ -317,10 +321,11 @@ test('late weather results cannot overwrite a newer city', async ({ page }) => {
   await page.locator('#settings-back-button').click();
   await page.locator('#langToggleBtnSettings').click();
   await expect(page.locator('#settings-title')).toHaveText('Settings');
-  await expect(page.locator('#weatherSettingsSummary')).toHaveText('Inline City');
+  await expect(page.locator('#weatherSettingsBtn')).toHaveText('Weather settings ›');
   await page.locator('#settings-close-button').click();
   await page.locator('#weather').click();
   await expect(page.locator('#locationModal #locationInput')).toBeVisible();
+  await expect(page.locator('#locationInput')).toHaveValue('Inline City');
   await page.locator('#loc-close-button').click();
   await page.evaluate(() => appStorage.removeItem('qweatherApiKey'));
   await page.locator('#weather').click();
@@ -430,6 +435,8 @@ test('built standalone runs offline and imports with denied storage; package con
     for (const name of [...Object.values(manifest.icons), 'assets/vendor/Sortable.min.js']) expect(fs.existsSync(`dist/extension/${name}`)).toBe(true);
     expect(fs.readFileSync('dist/extension/assets/vendor/Sortable.min.js')).toEqual(fs.readFileSync('assets/vendor/Sortable.min.js'));
     const html = fs.readFileSync('dist/extension/index.html', 'utf8');
+    expect(html).toContain(`name="application-version" content="${manifest.version}"`);
+    expect(fs.readFileSync('StartPage.html', 'utf8')).toContain(`name="application-version" content="${manifest.version}"`);
     for (const [, name] of html.matchAll(/<script src="([^"]+)"/g)) expect(fs.existsSync(`dist/extension/${name}`)).toBe(true);
   } finally { await context.close(); fs.rmSync(folder, { recursive: true, force: true }); }
 });

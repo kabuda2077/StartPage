@@ -3,6 +3,7 @@ const { test, expect } = require('@playwright/test');
 test.use({ contextOptions: { reducedMotion: 'no-preference' } });
 
 async function weatherSettings(page) {
+  await page.context().route('https://api.github.com/repos/kabuda2077/StartPage/releases/latest', route => route.fulfill({ json: { tag_name: `v${require('../../manifest.json').version}`, draft: false, prerelease: false } }));
   await page.addInitScript(() => {
     localStorage.setItem('hasVisited', 'true');
     localStorage.setItem('weatherLocationData', JSON.stringify({ id: 'preview', name: 'Preview city' }));

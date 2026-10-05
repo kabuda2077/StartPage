@@ -15,6 +15,7 @@ function updateAllTexts() {
   document.getElementById('weatherLocationLabel').textContent = t('locationLabel');
   settingsBackButton.setAttribute('aria-label', t('back')); settingsBackButton.title = t('back');
   updateWeatherSummary();
+  renderUpdateState();
   document.getElementById('usernameInput').placeholder = t('usernamePlaceholder');
   document.getElementById('apiKeyInput').placeholder = t('inputApiKey');
   document.getElementById('applyApiKeyText').innerHTML = t('applyApiKey');
@@ -123,6 +124,62 @@ const toggleApiKeyBtn = document.getElementById('toggleApiKeyBtn');
 const exportConfigBtn = document.getElementById('exportConfigBtn');
 const importConfigBtn = document.getElementById('importConfigBtn');
 const importConfigInput = document.getElementById('importConfigInput');
+const checkUpdateBtn = document.getElementById('checkUpdateBtn');
+const updateStatusLabel = document.getElementById('updateStatusLabel');
+const updateResult = document.getElementById('updateResult');
+const updateResultLabel = document.getElementById('updateResultLabel');
+const updateVersion = document.getElementById('updateVersion');
+let updateIdleTask = null, updateFeedbackTimer, showLatestUpdate = false;
+function getAppVersion() {
+  try {
+    const runtime = globalThis.browser?.runtime || globalThis.chrome?.runtime;
+    const version = runtime?.getManifest?.().version;
+    if (StartPageUpdates.compareVersions(version, version) === 0) return version;
+  } catch { /* The built HTML metadata also works outside an extension. */ }
+  return document.querySelector('meta[name="application-version"]')?.content || '';
+}
+const updateClient = StartPageUpdates.create({
+  storage: appStorage, version: getAppVersion(), onChange: renderUpdateState,
+  canCheck: () => document.visibilityState === 'visible' && navigator.onLine !== false,
+  locks: appStorage.persistent ? navigator.locks : null
+});
+function renderUpdateState() {
+  const state = updateClient.getState(), available = state.status === 'available';
+  const keys = { available: 'updateFound', checking: 'checkingUpdates', error: 'updateCheckFailed', unknown: 'updateVersionUnknown' };
+  const key = keys[state.status] || (showLatestUpdate ? 'updatesLatest' : null);
+  const version = available ? state.latestVersion : state.currentVersion;
+  const label = t('checkUpdates'), result = key ? t(key) : '', versionText = version ? `v${version}` : '—';
+  if (updateStatusLabel.textContent !== label) updateStatusLabel.textContent = label;
+  if (updateResultLabel.textContent !== result) updateResultLabel.textContent = result;
+  updateResultLabel.hidden = !result;
+  if (updateVersion.textContent !== versionText) updateVersion.textContent = versionText;
+  checkUpdateBtn.setAttribute('aria-busy', String(state.checking));
+  checkUpdateBtn.setAttribute('aria-disabled', String(state.checking || state.status === 'unknown'));
+  checkUpdateBtn.title = t(state.checking ? 'checkingUpdates' : state.lastCheckFailed ? 'updateRetryHint' : 'checkUpdates');
+  updateResult.classList.toggle('has-update', available);
+  if (available) updateResult.href = state.releaseUrl;
+  else updateResult.removeAttribute('href');
+  updateResult.tabIndex = available ? 0 : -1;
+  updateResult.title = available
+    ? t('updateReleaseHint', { current: `v${state.currentVersion}`, latest: `v${state.latestVersion}` })
+    : t('updateCurrentVersion', { version: versionText });
+}
+function queueUpdateCheck() {
+  renderUpdateState();
+  if (updateIdleTask !== null || document.visibilityState !== 'visible' || navigator.onLine === false) return;
+  updateIdleTask = scheduleIdleTask(() => { updateIdleTask = null; updateClient.check(); });
+}
+async function checkForUpdates() {
+  const state = updateClient.getState();
+  if (state.checking || state.status === 'unknown') return;
+  clearTimeout(updateFeedbackTimer); showLatestUpdate = false;
+  if (await updateClient.check(true)) {
+    showLatestUpdate = updateClient.getState().status === 'idle';
+    renderUpdateState();
+    updateFeedbackTimer = setTimeout(() => { showLatestUpdate = false; renderUpdateState(); }, 3000);
+  }
+}
+checkUpdateBtn.onclick = checkForUpdates;
 
 const DEFAULT_ENGINES = ['google', 'duckduckgo', 'baidu'].map(key => engineFromPreset(ENGINE_PRESETS.find(preset => preset.key === key)));
 let enginesData = [];
@@ -158,6 +215,7 @@ function updateSettingsStatus() {
 }
 window.addEventListener('startpage-storage-status', () => updateSettingsStatus());
 window.addEventListener('storage', event => {
+  if (event.key === StartPageUpdates.STORAGE_KEY || event.key === null) renderUpdateState();
   const editableKeys = ['siteData', 'enginesData', 'userName', 'qweatherApiKey', 'qweatherApiHost', 'lang'];
   if (settingsModal.style.display === 'flex' && (event.key === null || editableKeys.includes(event.key))) { invalidateSettings(); return; }
   if (event.key === 'siteData' || event.key === null) { loadSiteData(); renderMainPageGroups(); }
@@ -170,6 +228,10 @@ window.addEventListener('storage', event => {
 });
 window.addEventListener('pagehide', () => {
   clearTimeout(greetingTimer); greetingTimer = null;
+  if (window.cancelIdleCallback) window.cancelIdleCallback(updateIdleTask);
+  else clearTimeout(updateIdleTask);
+  updateIdleTask = null;
+  updateClient.cancel(); clearTimeout(updateFeedbackTimer); showLatestUpdate = false;
   if (!settingsStale) { groupStore.flush(); engineStore.flush(); }
   releaseSettingsLock?.(); releaseSettingsLock = null;
 });
@@ -193,6 +255,7 @@ function init() {
   setSearchEngine(appStorage.getItem('searchEngine') || enginesData[0]?.id || 'google');
   handleFirstVisit();
   scheduleIdleTask(() => initWeather());
+  queueUpdateCheck();
 }
 function loadSiteData() { siteData = groupStore.load(); }
 function saveSiteData(immediate = true) { return !settingsStale && groupStore.save(siteData, immediate); }
@@ -600,7 +663,6 @@ function customNotice(message) {
 
 function updateWeatherSummary() {
   const location = getSavedWeatherLocation();
-  document.getElementById('weatherSettingsSummary').textContent = !getApiKey() ? t('notConfigured') : location?.name || t('configured');
   document.getElementById('weatherLocationSummary').textContent = location?.name || t('locationUnset');
 }
 let locationEditorExpanded = false;
@@ -812,6 +874,7 @@ async function openSettings(page = 'main') {
     if (page === 'weather') showWeatherSettings();
     else await renderSettingsGroups();
     openModal(settingsModal, page === 'weather' ? document.getElementById('weatherLocationBtn') : settingsGroupsContainer.querySelector('input, button') || settingsCloseButton);
+    queueUpdateCheck();
   } catch {
     releaseSettingsLock?.(); releaseSettingsLock = null;
     customNotice(t('importFailed'));
@@ -1297,11 +1360,13 @@ function refreshGreetingByTime() {
 function refreshWhenVisible() {
   refreshGreetingByTime();
   if (document.visibilityState !== 'visible') return;
+  queueUpdateCheck();
   if (Date.now() - lastRefresh > 60000) { lastRefresh = Date.now(); initWeather(); }
 }
 document.addEventListener('visibilitychange', refreshWhenVisible);
 window.addEventListener('focus', refreshWhenVisible);
-window.addEventListener('pageshow', refreshGreetingByTime);
+window.addEventListener('pageshow', () => { refreshGreetingByTime(); queueUpdateCheck(); });
+window.addEventListener('online', queueUpdateCheck);
 document.getElementById('usernameInput').maxLength = StartPageData.limits.text;
 document.getElementById('welcome-name-input').maxLength = StartPageData.limits.text;
 apiKeyInput.maxLength = 4096;

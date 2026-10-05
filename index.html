@@ -3,11 +3,13 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="application-version" content="__STARTPAGE_VERSION__">
   <title>Start Page</title>
   <script src="config.js"></script>
   <link rel="stylesheet" href="style.css">
 
   <script src="weather-client.js" defer></script>
+  <script src="update-client.js" defer></script>
   <script src="ui-core.js" defer></script>
   <script src="ui-motion.js" defer></script>
   <script src="script.js" defer></script>
@@ -106,7 +108,7 @@
 
           <button type="button" id="weatherSettingsBtn" class="setting-item settings-entry">
             <span class="ui-icon" data-icon="cloud"></span><span id="weatherSettingsBtnText">天气设置</span>
-            <span id="weatherSettingsSummary" class="entry-summary"></span><span class="entry-chevron" aria-hidden="true">›</span>
+            <span class="entry-chevron" aria-hidden="true">›</span>
           </button>
 
           <div id="username-section">
@@ -122,6 +124,17 @@
               <input type="text" class="setting-input" id="usernameInput" placeholder="输入您的名字" autocomplete="off">
               <button class="btn btn-icon btn-success" id="saveUsernameBtn" data-svg="check"></button>
             </div>
+          </div>
+
+          <div id="updateRow" class="setting-item">
+            <span class="ui-icon setting-icon" data-icon="refresh" aria-hidden="true"></span>
+            <button type="button" id="checkUpdateBtn" class="settings-entry update-action" aria-describedby="updateResult">
+              <span id="updateStatusLabel">检查更新</span>
+            </button>
+            <a id="updateResult" class="update-result" target="_blank" rel="noopener noreferrer" tabindex="-1" aria-live="polite" aria-atomic="true">
+              <span id="updateResultLabel" hidden></span>
+              <span id="updateVersion"></span>
+            </a>
           </div>
         </div>
 

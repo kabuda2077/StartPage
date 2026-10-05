@@ -8,7 +8,9 @@ const dataUrl = name => {
   return `data:${type};base64,${fs.readFileSync(path.join(root, name)).toString('base64')}`;
 };
 const script = source => `<script>\n${source.replace(/<\/script/gi, '<\\/script')}\n</script>`;
-let html = read('index.html');
+const version = JSON.parse(read('manifest.json')).version;
+const page = read('index.html').replace('__STARTPAGE_VERSION__', version);
+let html = page;
 const deferred = [];
 html = html.replace(/<script src="([^"\s]+)"( defer)?><\/script>/g, (_, name, defer) => {
   let code = read(name);
@@ -28,8 +30,9 @@ console.log(`Built StartPage.html (${Buffer.byteLength(html)} bytes)`);
 const packageOutput = path.join(root, 'dist', 'extension');
 fs.rmSync(packageOutput, { recursive: true, force: true });
 fs.mkdirSync(packageOutput, { recursive: true });
-const runtime = [...read('index.html').matchAll(/<script src="([^"]+)"/g)].map(match => match[1]);
-for (const file of ['manifest.json', 'index.html', 'style.css', ...runtime]) {
+fs.writeFileSync(path.join(packageOutput, 'index.html'), page);
+const runtime = [...page.matchAll(/<script src="([^"]+)"/g)].map(match => match[1]);
+for (const file of ['manifest.json', 'style.css', ...runtime]) {
   fs.copyFileSync(path.join(root, file), path.join(packageOutput, file));
 }
 fs.cpSync(path.join(root, 'assets'), path.join(packageOutput, 'assets'), { recursive: true, filter: source => !source.endsWith('.md') });

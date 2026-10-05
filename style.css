@@ -667,7 +667,7 @@ input[type="text"]:focus, input[type="url"]:focus { outline: none; }
   padding-top: 26px;
   display: flex;
   flex-direction: column;
-  gap: 26px;
+  gap: 14px;
 }
 .settings-preferences {
   min-width: 0;
@@ -687,7 +687,8 @@ input[type="text"]:focus, input[type="url"]:focus { outline: none; }
   box-shadow: none;
   transition: background-color var(--motion-quick) var(--motion-easing);
 }
-.settings-preferences > .settings-entry::after {
+.settings-preferences > #username-section { position: relative; }
+.settings-preferences > :not(:last-child)::after {
   content: '';
   position: absolute;
   left: 47px;
@@ -702,6 +703,18 @@ input[type="text"]:focus, input[type="url"]:focus { outline: none; }
 .settings-preferences .setting-label-row,
 .settings-preferences .setting-input { min-width: 0; }
 #username-saved-text { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+/* The icon is decorative; checking and opening a release are separate text actions. */
+#updateRow:has(.update-action:hover), #updateRow:has(.update-result[href]:hover) { background: var(--hover-bg); }
+.update-action { display: flex; align-items: center; align-self: stretch; flex: 0 1 auto; min-width: 9ch; min-height: 50px; width: auto; padding: 0; border: 0; background: transparent; line-height: 1.25; }
+.update-action:focus-visible { outline-offset: -3px; }
+#checkUpdateBtn[aria-busy="true"] { cursor: progress; opacity: 0.6; }
+/* Match the icon edge inside the 32px action buttons, rather than their hit-area edge. */
+.update-result { display: flex; flex-wrap: wrap; align-items: center; justify-content: flex-end; column-gap: 6px; min-width: 0; min-height: 32px; margin-left: auto; margin-right: calc((32px - .95rem) / 2); font-size: 0.8rem; line-height: 1.2; color: var(--text-light); text-decoration: none; cursor: default; }
+.update-result.has-update { color: var(--accent-soft-text); cursor: pointer; }
+.update-result:focus-visible { outline: 2px solid var(--focus-ring); outline-offset: 2px; border-radius: 3px; }
+#updateResultLabel { max-width: 100%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+#updateVersion { min-width: 0; max-width: 100%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+#updateResultLabel[hidden] { display: none; }
 .settings-preferences #username-edit-mode:focus-within { box-shadow: inset 0 0 0 2px var(--focus-ring); }
 .settings-inline-actions {
   display: flex;
